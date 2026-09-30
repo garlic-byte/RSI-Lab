@@ -12,6 +12,24 @@ A compact testbed for recursive self-improvement experiments using 2D flow match
 | [002](#exp-002--transformer-backbone) | Three-token Transformer; same training settings | `checkerboard_v2`, 100 classes | 1.1243 | 0.0315 | 36/100 | More classes pass with similar parameter count, at higher runtime cost. |
 | [003](#exp-003--cnn-backbone) | Three-position Conv1d; same training settings | `checkerboard_v2`, 100 classes | 1.1062 | 0.0322 | 28/100 | Fit improves over MLP, trails Transformer, with the highest measured runtime. |
 
+### Fit-check pass rate by shape family
+
+Each cell shows **passing classes / 10 variants**. A class passes only when all four fit checks pass; these are class-level acceptance rates, not per-point accuracy.
+
+| Class IDs | Shape family | MLP (001) | Transformer (002) | CNN (003) |
+|---|---|---:|---:|---:|
+| 00–09 | Checkerboards | 0/10 | 0/10 | 0/10 |
+| 10–19 | Ellipses | 9/10 | 10/10 | 10/10 |
+| 20–29 | Spirals | 0/10 | 2/10 | 0/10 |
+| 30–39 | Roses | 0/10 | 0/10 | 0/10 |
+| 40–49 | Polygons | 1/10 | 6/10 | 3/10 |
+| 50–59 | Stars | 0/10 | 0/10 | 0/10 |
+| 60–69 | Lissajous curves | 0/10 | 0/10 | 0/10 |
+| 70–79 | Waves | 0/10 | 1/10 | 1/10 |
+| 80–89 | Gaussian rings | 2/10 | 8/10 | 5/10 |
+| 90–99 | Superellipses | 9/10 | 9/10 | 9/10 |
+| **Total** | **All families** | **21/100** | **36/100** | **28/100** |
+
 ### EXP-001 — Flow matching baseline
 
 **Question.** Can a small conditional MLP fit 100 noisy 2D shape distributions?
