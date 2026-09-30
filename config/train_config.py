@@ -18,6 +18,8 @@ class ModelConfig:
     transformer_dim: int = 64
     """Transformer token width; hidden_dim sets its feed-forward width."""
     num_heads: int = 4
+    cnn_channels: int = 128
+    """Conv1d channel width; num_layers sets convolution depth."""
 
     def validate(self) -> None:
         """Reject invalid common dimensions before constructing a model."""
@@ -27,6 +29,8 @@ class ModelConfig:
         if self.model_type == "transformer":
             if self.transformer_dim <= 0 or self.num_heads <= 0 or self.transformer_dim % self.num_heads:
                 raise ValueError("transformer_dim must be positive and divisible by positive num_heads")
+        if self.model_type == "cnn" and self.cnn_channels <= 0:
+            raise ValueError("cnn_channels must be positive")
 
 
 @dataclass

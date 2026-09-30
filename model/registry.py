@@ -5,11 +5,13 @@ from torch import nn
 from config.train_config import ModelConfig
 from model.velocity_mlp import VelocityMLP
 from model.velocity_transformer import VelocityTransformer
+from model.velocity_cnn import VelocityCNN
 
 
 MODEL_REGISTRY: dict[str, type[nn.Module]] = {
     "mlp": VelocityMLP,
     "transformer": VelocityTransformer,
+    "cnn": VelocityCNN,
 }
 
 

@@ -10,6 +10,7 @@ A compact testbed for recursive self-improvement experiments using 2D flow match
 |---|---|---|---:|---:|---:|---|
 | [001](#exp-001--flow-matching-baseline) | Conditional MLP flow matching; baseline | `checkerboard_v2`, 100 classes | 1.0902 | 0.0340 | 21/100 | Global distributions improve, but most classes fail at least one fit check. |
 | [002](#exp-002--transformer-backbone) | Three-token Transformer; same training settings | `checkerboard_v2`, 100 classes | 1.1243 | 0.0315 | 36/100 | More classes pass with similar parameter count, at higher runtime cost. |
+| [003](#exp-003--cnn-backbone) | Three-position Conv1d; same training settings | `checkerboard_v2`, 100 classes | 1.1062 | 0.0322 | 28/100 | Fit improves over MLP, trails Transformer, with the highest measured runtime. |
 
 ### EXP-001 — Flow matching baseline
 
@@ -51,6 +52,22 @@ Train on `x_t = (1 − t)x_0 + tx_1`, where `x_0 ~ N(0, I)` and `x_1` is a targe
 
 [Target vs. generated](experiments/002-transformer/comparison.png) · [Per-class results](experiments/002-transformer/quality.csv) · [Exact configuration](experiments/002-transformer/config.json) · [Metrics](experiments/002-transformer/metrics.json) · [Acceptance thresholds](experiments/002-transformer/quality_report.json)
 
+### EXP-003 — CNN backbone
+
+**Question.** Can a similarly sized convolutional backbone improve fitting under the same training settings?
+
+**Method.** Project the same Fourier position/time features and class embedding into a three-position sequence. Apply four Conv1d layers with 128 channels, kernel size 3, zero padding, and SiLU, then flatten and predict 2D velocity. Convolution operates within each point's feature sequence, never across batch points or a raster image. No dropout or batch normalization. Parameter count: **207,810**.
+
+**Configuration.** Same training and sampling settings as EXP-001/002: 100 classes, 15,000 updates, batch 2,048, AdamW, LR 0.001, 500-step warmup, cosine decay, seed 42, MPS, 100 Heun steps, and 2,000 points per class. Launch with `--model cnn --cnn-channels 128 --num-layers 4`. Measured duration: **3,979.3 s (66.3 min)** including training progress sampling/plots, excluding final sampling/evaluation; **9.4×** MLP and **1.5×** Transformer. These are observed run durations, not isolated throughput measurements.
+
+![EXP-003: CNN particle trajectories](experiments/003-cnn/inference.gif)
+
+**Result.** Validation MSE fell from **1.6418 to 1.1062**. Mean SW1 was **0.0322**, compared with **0.0340** for MLP and **0.0315** for Transformer. **28/100 classes passed**, versus 21 for MLP and 36 for Transformer. Passing counts: ellipses 10/10, polygons 3/10, waves 1/10, Gaussian rings 5/10, and superellipses 9/10; all other families 0/10.
+
+**Finding.** CNN falls between MLP and Transformer on both mean SW1 and passing classes, while taking the longest in these runs. It does not outperform the Transformer on these fit metrics, and 72 classes still fail. Conclusions are limited to this configuration and single seed.
+
+[Target vs. generated](experiments/003-cnn/comparison.png) · [Per-class results](experiments/003-cnn/quality.csv) · [Exact configuration](experiments/003-cnn/config.json) · [Metrics](experiments/003-cnn/metrics.json) · [Acceptance thresholds](experiments/003-cnn/quality_report.json)
+
 ## Evaluation protocol
 
 Each class must pass **all four checks**: sliced Wasserstein-1 (global distribution), nearest-distance precision (proximity to target support), coverage (missing regions), and multiscale grid JS divergence (local density). Thresholds are calibrated against independent target samples: at most 1,000 points per class, five calibration draws, distance tolerance ×1.5, and probability slack 0.05. These are heuristic acceptance checks, not proof of distributional equivalence.
@@ -77,7 +94,15 @@ Use `--device cpu` or `--device cuda` on other hardware. Full checkpoints and ge
 
 ## Swap models
 
-Change only `--model mlp` to `--model transformer` in the training command above, and choose a new output directory. Optimizer, data, loss, evaluation and Heun sampling are shared. The checkpoint stores the architecture, so `run_sample.py --checkpoint ...` selects the matching model automatically; old MLP checkpoints remain supported.
+Available backbones: `--model mlp`, `--model transformer`, and `--model cnn`.
+The CNN uses four width-three, zero-padded Conv1d layers with SiLU over a
+three-position sequence of position/time/class features. It never convolves
+across batch points. `--cnn-channels` defaults to 128; `--num-layers` sets its
+depth, and `--hidden-dim` is unused by CNN. Its default four-layer configuration
+has 207,810 parameters for 100 classes. Training and sampling settings can stay
+identical to the other experiments; see EXP-003 for results.
+
+Change only `--model mlp` to `--model transformer` or `--model cnn` in the training command above, and choose a new output directory. Optimizer, data, loss, evaluation and Heun sampling are shared. The checkpoint stores the architecture, so `run_sample.py --checkpoint ...` selects the matching model automatically; old MLP checkpoints remain supported.
 
 The Transformer uses three tokens **within each point**: Fourier position features, Fourier time features, and a class embedding. Four encoder blocks attend over these tokens; the position token predicts the 2D velocity. Points in a batch never attend to one another. Defaults: token width 64 (`--transformer-dim`), four heads (`--num-heads`), no dropout. `--hidden-dim` controls MLP hidden width or Transformer feed-forward width; `--num-layers` controls backbone depth. With the experiment settings, MLP has 214,850 parameters and Transformer has 205,954.
 
@@ -85,4 +110,4 @@ To add a model, implement `__init__(ModelConfig)` and `forward(points[B,2], time
 
 ## Add an experiment
 
-Append one table row and one short entry: **question → method/change → configuration → results → inference GIF → finding**. Save selected artifacts in `experiments/003-<name>/` with the exact config and evaluation report. Retain failures and keep acceptance thresholds unchanged across comparisons.
+Append one table row and one short entry: **question → method/change → configuration → results → inference GIF → finding**. Save selected artifacts in `experiments/004-<name>/` with the exact config and evaluation report. Retain failures and keep acceptance thresholds unchanged across comparisons.
