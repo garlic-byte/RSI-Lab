@@ -12,6 +12,20 @@ from train.sampling import generate_points
 
 
 class ModelRegistryTest(unittest.TestCase):
+    def test_gaussian_basis_matches_known_velocity_and_endpoints(self):
+        config = ModelConfig(model_type="mixture_mlp", hidden_dim=32, num_layers=2,
+                             global_mlp_dim=16, global_mlp_bottleneck=8, mixture_components=4)
+        model = build_model(config)
+        points, times, labels = torch.randn(8, 2), torch.linspace(0, 1, 8)[:, None], torch.arange(8)
+        with torch.no_grad():
+            model.component_means.zero_()
+            model.component_log_scales.zero_()
+        # Independent standard normal endpoints have a known linear field.
+        factor = (2 * times - 1) / ((1 - times).square() + times.square())
+        torch.testing.assert_close(model.mixture_velocity(points, times, labels), factor * points)
+        torch.testing.assert_close(model(points, torch.ones_like(times), labels), points)
+        torch.testing.assert_close(model(points, torch.zeros_like(times), labels), -points)
+
     def test_modulated_global_mlp_preserves_initial_function_and_rng(self):
         config = ModelConfig(model_type="global_mlp", global_mlp_dim=16,
                              global_mlp_bottleneck=8, hidden_dim=32, num_layers=2)

@@ -26,6 +26,8 @@ class ModelConfig:
     """Feature-vector width for the attention-free global MLP."""
     global_mlp_bottleneck: int = 32
     """Hidden width of its dense global feature-and-gate mixer."""
+    mixture_components: int = 400
+    """Number of learned Gaussian basis functions per class in mixture_mlp."""
 
     def validate(self) -> None:
         """Reject invalid common dimensions before constructing a model."""
@@ -39,8 +41,10 @@ class ModelConfig:
             raise ValueError("cnn_channels must be positive")
         if self.model_type == "unet" and self.unet_channels <= 0:
             raise ValueError("unet_channels must be positive")
-        if self.model_type in ("global_mlp", "class_conditioned_mlp", "modulated_global_mlp", "adaptive_fourier_mlp") and min(self.global_mlp_dim, self.global_mlp_bottleneck) <= 0:
+        if self.model_type in ("global_mlp", "class_conditioned_mlp", "modulated_global_mlp", "adaptive_fourier_mlp", "mixture_mlp") and min(self.global_mlp_dim, self.global_mlp_bottleneck) <= 0:
             raise ValueError("global_mlp_dim and global_mlp_bottleneck must be positive")
+        if self.model_type == "mixture_mlp" and self.mixture_components <= 0:
+            raise ValueError("mixture_components must be positive")
 
 
 @dataclass

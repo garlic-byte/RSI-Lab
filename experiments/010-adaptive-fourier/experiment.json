@@ -1,0 +1,11 @@
+{
+  "source": "outputs/iter010_adaptive_fourier",
+  "directory": "010-adaptive-fourier",
+  "title": "Adaptive Fourier features",
+  "label": "Adaptive Fourier",
+  "short": "Modulated Global MLP + learned Fourier basis",
+  "question": "Can class-specific learned spatial directions improve complex shape fitting?",
+  "method": "Keep the modulated Global MLP backbone and replace axis-aligned spatial Fourier features with 32 learned plane waves per class. Every class starts with the same four directions and eight harmonics; no target formulas or samples enter model initialization.",
+  "parameters": 290306,
+  "finding": "41/100 passed, below the 46/100 best in EXP-008. Learned spatial directions did not improve the combined acceptance checks; retain EXP-008 as the best model."
+}

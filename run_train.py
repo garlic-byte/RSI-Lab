@@ -32,6 +32,7 @@ def main() -> None:
     parser.add_argument("--unet-channels", type=int, default=32)
     parser.add_argument("--global-mlp-dim", type=int, default=64)
     parser.add_argument("--global-mlp-bottleneck", type=int, default=32)
+    parser.add_argument("--mixture-components", type=int, default=400)
     args = vars(parser.parse_args())
     model_config = ModelConfig(hidden_dim=args.pop("hidden_dim"), num_layers=args.pop("num_layers"),
                                num_classes=args["num_classes"], model_type=args.pop("model"),
@@ -39,7 +40,8 @@ def main() -> None:
                                cnn_channels=args.pop("cnn_channels"), unet_channels=args.pop("unet_channels"),
                                global_mlp_dim=args.pop("global_mlp_dim"),
                                global_mlp_bottleneck=args.pop("global_mlp_bottleneck"),
-                               spatial_frequencies=args.pop("spatial_frequencies"))
+                               spatial_frequencies=args.pop("spatial_frequencies"),
+                               mixture_components=args.pop("mixture_components"))
     try:
         model_config.validate()
     except ValueError as error:
