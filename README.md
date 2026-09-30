@@ -50,7 +50,7 @@ Train on `x_t = (1 − t)x_0 + tx_1`, where `x_0 ~ N(0, I)` and `x_1` is a targe
 
 ![EXP-001: particle trajectories from noise to generated shapes](experiments/001-baseline/inference.gif)
 
-**Result.** Validation MSE fell from **1.6325 to 1.0902**. Mean sliced Wasserstein-1 was **0.0340**, versus **0.2331** for Gaussian noise. Only **21/100 classes passed** the combined fit checks: ellipses 9/10, polygons 1/10, Gaussian rings 2/10, and superellipses 9/10. All other families passed 0/10. This is a working baseline with substantial fitting errors, not a solved benchmark.
+**Result.** Validation MSE fell from **1.6325 to 1.0902**. Mean sliced Wasserstein-1 was **0.0340**, versus **0.2331** for Gaussian noise. Only **21/100 classes passed** the combined fit checks. This is a working baseline with substantial fitting errors, not a solved benchmark.
 
 [Target vs. generated](experiments/001-baseline/comparison.png) · [Per-class results](experiments/001-baseline/quality.csv) · [Exact configuration](experiments/001-baseline/config.json) · [Metrics](experiments/001-baseline/metrics.json) · [Acceptance thresholds](experiments/001-baseline/quality_report.json)
 
@@ -64,7 +64,7 @@ Train on `x_t = (1 − t)x_0 + tx_1`, where `x_0 ~ N(0, I)` and `x_1` is a targe
 
 ![EXP-002: Transformer particle trajectories](experiments/002-transformer/inference.gif)
 
-**Result.** Validation MSE fell from **1.9254 to 1.1243**. Mean SW1 improved from the MLP's **0.0340 to 0.0315** (about **7.4%** lower), and passing classes increased from **21 to 36/100**. Passing counts by family: ellipses 10/10, spirals 2/10, polygons 6/10, waves 1/10, Gaussian rings 8/10, and superellipses 9/10; all other families 0/10.
+**Result.** Validation MSE fell from **1.9254 to 1.1243**. Mean SW1 improved from the MLP's **0.0340 to 0.0315** (about **7.4%** lower), and passing classes increased from **21 to 36/100**.
 
 **Finding.** This configuration improves the combined fit-check pass count, but 64 classes still fail and runtime is substantially higher. Its higher validation MSE does not imply worse generated distributions; validation sets differ between architectures, and flow loss is not the final fit criterion. This single-seed comparison does not establish that Transformers are generally better.
 
@@ -80,7 +80,7 @@ Train on `x_t = (1 − t)x_0 + tx_1`, where `x_0 ~ N(0, I)` and `x_1` is a targe
 
 ![EXP-003: CNN particle trajectories](experiments/003-cnn/inference.gif)
 
-**Result.** Validation MSE fell from **1.6418 to 1.1062**. Mean SW1 was **0.0322**, compared with **0.0340** for MLP and **0.0315** for Transformer. **28/100 classes passed**, versus 21 for MLP and 36 for Transformer. Passing counts: ellipses 10/10, polygons 3/10, waves 1/10, Gaussian rings 5/10, and superellipses 9/10; all other families 0/10.
+**Result.** Validation MSE fell from **1.6418 to 1.1062**. Mean SW1 was **0.0322**, compared with **0.0340** for MLP and **0.0315** for Transformer. **28/100 classes passed**, versus 21 for MLP and 36 for Transformer.
 
 **Finding.** CNN falls between MLP and Transformer on both mean SW1 and passing classes, while taking the longest in these runs. It does not outperform the Transformer on these fit metrics, and 72 classes still fail. Conclusions are limited to this configuration and single seed.
 
