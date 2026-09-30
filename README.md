@@ -11,24 +11,25 @@ A compact testbed for recursive self-improvement experiments using 2D flow match
 | [001](#exp-001--flow-matching-baseline) | Conditional MLP flow matching; baseline | `checkerboard_v2`, 100 classes | 1.0902 | 0.0340 | 21/100 | Global distributions improve, but most classes fail at least one fit check. |
 | [002](#exp-002--transformer-backbone) | Three-token Transformer; same training settings | `checkerboard_v2`, 100 classes | 1.1243 | 0.0315 | 36/100 | More classes pass with similar parameter count, at higher runtime cost. |
 | [003](#exp-003--cnn-backbone) | Three-position Conv1d; same training settings | `checkerboard_v2`, 100 classes | 1.1062 | 0.0322 | 28/100 | Fit improves over MLP, trails Transformer, with the highest measured runtime. |
+| [004](#exp-004--residual-mlp) | MLP with identity skips only; no LayerNorm | `checkerboard_v2`, 100 classes | 1.0889 | 0.0333 | 24/100 | Small improvement over MLP; residuals alone do not close the Transformer gap. |
 
 ### Fit-check pass rate by shape family
 
 Each cell shows **passing classes / 10 variants**. A class passes only when all four fit checks pass; these are class-level acceptance rates, not per-point accuracy.
 
-| Class IDs | Shape family | MLP (001) | Transformer (002) | CNN (003) |
-|---|---|---:|---:|---:|
-| 00–09 | Checkerboards | 0/10 | 0/10 | 0/10 |
-| 10–19 | Ellipses | 9/10 | 10/10 | 10/10 |
-| 20–29 | Spirals | 0/10 | 2/10 | 0/10 |
-| 30–39 | Roses | 0/10 | 0/10 | 0/10 |
-| 40–49 | Polygons | 1/10 | 6/10 | 3/10 |
-| 50–59 | Stars | 0/10 | 0/10 | 0/10 |
-| 60–69 | Lissajous curves | 0/10 | 0/10 | 0/10 |
-| 70–79 | Waves | 0/10 | 1/10 | 1/10 |
-| 80–89 | Gaussian rings | 2/10 | 8/10 | 5/10 |
-| 90–99 | Superellipses | 9/10 | 9/10 | 9/10 |
-| **Total** | **All families** | **21/100** | **36/100** | **28/100** |
+| Class IDs | Shape family | MLP (001) | Transformer (002) | CNN (003) | Residual MLP (004) |
+|---|---|---:|---:|---:|---:|
+| 00–09 | Checkerboards | 0/10 | 0/10 | 0/10 | 0/10 |
+| 10–19 | Ellipses | 9/10 | 10/10 | 10/10 | 10/10 |
+| 20–29 | Spirals | 0/10 | 2/10 | 0/10 | 0/10 |
+| 30–39 | Roses | 0/10 | 0/10 | 0/10 | 0/10 |
+| 40–49 | Polygons | 1/10 | 6/10 | 3/10 | 3/10 |
+| 50–59 | Stars | 0/10 | 0/10 | 0/10 | 0/10 |
+| 60–69 | Lissajous curves | 0/10 | 0/10 | 0/10 | 0/10 |
+| 70–79 | Waves | 0/10 | 1/10 | 1/10 | 0/10 |
+| 80–89 | Gaussian rings | 2/10 | 8/10 | 5/10 | 1/10 |
+| 90–99 | Superellipses | 9/10 | 9/10 | 9/10 | 10/10 |
+| **Total** | **All families** | **21/100** | **36/100** | **28/100** | **24/100** |
 
 ### EXP-001 — Flow matching baseline
 
@@ -86,11 +87,27 @@ Train on `x_t = (1 − t)x_0 + tx_1`, where `x_0 ~ N(0, I)` and `x_1` is a targe
 
 [Target vs. generated](experiments/003-cnn/comparison.png) · [Per-class results](experiments/003-cnn/quality.csv) · [Exact configuration](experiments/003-cnn/config.json) · [Metrics](experiments/003-cnn/metrics.json) · [Acceptance thresholds](experiments/003-cnn/quality_report.json)
 
+### EXP-004 — Residual MLP
+
+**Question.** How much of the fitting improvement can be obtained by adding residual connections alone to the baseline MLP?
+
+**Method.** Keep the baseline's Fourier features, class embedding, four hidden layers of width 256, SiLU, and **214,850 parameters**. Add an identity skip around each of the three hidden-to-hidden Linear + SiLU pairs: `h = h + SiLU(Wh + b)`. Input projection and output readout remain unchanged. No LayerNorm, dropout, residual scaling, or new parameters. Initial parameter tensors and initialization RNG state were verified identical to the baseline implementation at seed 42.
+
+**Configuration.** Same training, sampling, and evaluation settings as EXP-001: 15,000 updates, batch 2,048, AdamW, LR 0.001, 500-step warmup, cosine decay, seed 42, MPS, 100 Heun steps, and 2,000 points per class. Select `--model residual_mlp`. Measured duration: **544.4 s (9.1 min)** including training progress sampling/plots, excluding final sampling/evaluation; about **1.28×** the baseline's observed duration.
+
+![EXP-004: residual MLP particle trajectories](experiments/004-residual-mlp/inference.gif)
+
+**Result.** Validation MSE fell from **1.6486 to 1.0889**. Mean SW1 was **0.0333**, about **2.1%** below the baseline's 0.0340. **24/100 classes passed**, compared with 21 for MLP, 28 for CNN, and 36 for Transformer.
+
+**Finding.** Residual connections alone give a modest improvement in this run, but do not close the gap to Transformer. Improvements are not uniform across families (see the table above). This single-seed ablation does not isolate the benefits of LayerNorm or attention; neither was added here.
+
+[Target vs. generated](experiments/004-residual-mlp/comparison.png) · [Per-class results](experiments/004-residual-mlp/quality.csv) · [Exact configuration](experiments/004-residual-mlp/config.json) · [Metrics](experiments/004-residual-mlp/metrics.json) · [Acceptance thresholds](experiments/004-residual-mlp/quality_report.json)
+
 ## Evaluation protocol
 
 Each class must pass **all four checks**: sliced Wasserstein-1 (global distribution), nearest-distance precision (proximity to target support), coverage (missing regions), and multiscale grid JS divergence (local density). Thresholds are calibrated against independent target samples: at most 1,000 points per class, five calibration draws, distance tolerance ×1.5, and probability slack 0.05. These are heuristic acceptance checks, not proof of distributional equivalence.
 
-Keep the dataset version, evaluation settings, sampling budget, and seeds fixed when comparing experiments. Report method changes and compute budgets explicitly. These are single-seed results. Architecture-dependent initialization consumes different random draws, so training streams and validation sets are not identical across models; validation MSE is not a paired comparison. Final sampling is re-seeded independently of training.
+Keep the dataset version, evaluation settings, sampling budget, and seeds fixed when comparing experiments. Report method changes and compute budgets explicitly. These are single-seed results. Transformer and CNN initialization consume different random draws from MLP, so their training streams and validation sets differ; those validation MSE comparisons are not paired. The residual MLP preserves the baseline initialization and RNG consumption, enabling a more controlled residual-only comparison. Final sampling is re-seeded independently of training.
 
 ## Reproduce
 
@@ -112,7 +129,15 @@ Use `--device cpu` or `--device cuda` on other hardware. Full checkpoints and ge
 
 ## Swap models
 
-Available backbones: `--model mlp`, `--model transformer`, and `--model cnn`.
+Available backbones: `--model mlp`, `--model transformer`, `--model cnn`, and `--model residual_mlp`.
+The residual-only ablation is available as `--model residual_mlp`: it keeps the
+MLP's features, parameter layout, initialization, depth and width, adding identity skips
+around the three hidden-to-hidden Linear + SiLU pairs (`h = h + SiLU(Wh + b)`).
+The input projection and output readout are unchanged. No LayerNorm is added.
+With four hidden layers of width 256 it has exactly 214,850 parameters, matching
+EXP-001. Use the same reproduction command with a new output directory and
+`--model residual_mlp`; see EXP-004 for results.
+
 The CNN uses four width-three, zero-padded Conv1d layers with SiLU over a
 three-position sequence of position/time/class features. It never convolves
 across batch points. `--cnn-channels` defaults to 128; `--num-layers` sets its
@@ -128,4 +153,4 @@ To add a model, implement `__init__(ModelConfig)` and `forward(points[B,2], time
 
 ## Add an experiment
 
-Append one table row and one short entry: **question → method/change → configuration → results → inference GIF → finding**. Save selected artifacts in `experiments/004-<name>/` with the exact config and evaluation report. Retain failures and keep acceptance thresholds unchanged across comparisons.
+Append one table row and one short entry: **question → method/change → configuration → results → inference GIF → finding**. Save selected artifacts in `experiments/005-<name>/` with the exact config and evaluation report. Retain failures and keep acceptance thresholds unchanged across comparisons.
