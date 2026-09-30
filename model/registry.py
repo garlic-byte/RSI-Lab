@@ -7,6 +7,8 @@ from model.velocity_mlp import VelocityMLP
 from model.velocity_transformer import VelocityTransformer
 from model.velocity_cnn import VelocityCNN
 from model.velocity_residual_mlp import VelocityResidualMLP
+from model.velocity_unet import VelocityUNet
+from model.velocity_global_mlp import VelocityGlobalMLP
 
 
 MODEL_REGISTRY: dict[str, type[nn.Module]] = {
@@ -14,6 +16,8 @@ MODEL_REGISTRY: dict[str, type[nn.Module]] = {
     "transformer": VelocityTransformer,
     "cnn": VelocityCNN,
     "residual_mlp": VelocityResidualMLP,
+    "unet": VelocityUNet,
+    "global_mlp": VelocityGlobalMLP,
 }
 
 

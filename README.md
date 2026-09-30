@@ -10,26 +10,28 @@ A compact testbed for recursive self-improvement experiments using 2D flow match
 |---|---|---|---:|---:|---:|---|
 | [001](#exp-001--flow-matching-baseline) | Conditional MLP flow matching; baseline | `checkerboard_v2`, 100 classes | 1.0902 | 0.0340 | 21/100 | Global distributions improve, but most classes fail at least one fit check. |
 | [002](#exp-002--transformer-backbone) | Three-token Transformer; same training settings | `checkerboard_v2`, 100 classes | 1.1243 | 0.0315 | 36/100 | More classes pass with similar parameter count, at higher runtime cost. |
-| [003](#exp-003--cnn-backbone) | Three-position Conv1d; same training settings | `checkerboard_v2`, 100 classes | 1.1062 | 0.0322 | 28/100 | Fit improves over MLP, trails Transformer, with the highest measured runtime. |
+| [003](#exp-003--cnn-backbone) | Three-position Conv1d; same training settings | `checkerboard_v2`, 100 classes | 1.1062 | 0.0322 | 28/100 | Fit improves over MLP, trails Transformer, with longer observed runtime than both. |
 | [004](#exp-004--residual-mlp) | MLP with identity skips only; no LayerNorm | `checkerboard_v2`, 100 classes | 1.0889 | 0.0333 | 24/100 | Small improvement over MLP; residuals alone do not close the Transformer gap. |
+| [005](#exp-005--unet-backbone) | Two-level feature-sequence U-Net | `checkerboard_v2`, 100 classes | 1.1305 | 0.0437 | 14/100 | Worse fit than baseline in this configuration. |
+| [006](#exp-006--global-mlp) | Global dense mixing, norms, residuals and channel gates; no attention | `checkerboard_v2`, 100 classes | 1.1135 | 0.0317 | 42/100 | Highest pass count so far; mean SW1 remains slightly above Transformer. |
 
 ### Fit-check pass rate by shape family
 
 Each cell shows **passing classes / 10 variants**. A class passes only when all four fit checks pass; these are class-level acceptance rates, not per-point accuracy.
 
-| Class IDs | Shape family | MLP (001) | Transformer (002) | CNN (003) | Residual MLP (004) |
-|---|---|---:|---:|---:|---:|
-| 00–09 | Checkerboards | 0/10 | 0/10 | 0/10 | 0/10 |
-| 10–19 | Ellipses | 9/10 | 10/10 | 10/10 | 10/10 |
-| 20–29 | Spirals | 0/10 | 2/10 | 0/10 | 0/10 |
-| 30–39 | Roses | 0/10 | 0/10 | 0/10 | 0/10 |
-| 40–49 | Polygons | 1/10 | 6/10 | 3/10 | 3/10 |
-| 50–59 | Stars | 0/10 | 0/10 | 0/10 | 0/10 |
-| 60–69 | Lissajous curves | 0/10 | 0/10 | 0/10 | 0/10 |
-| 70–79 | Waves | 0/10 | 1/10 | 1/10 | 0/10 |
-| 80–89 | Gaussian rings | 2/10 | 8/10 | 5/10 | 1/10 |
-| 90–99 | Superellipses | 9/10 | 9/10 | 9/10 | 10/10 |
-| **Total** | **All families** | **21/100** | **36/100** | **28/100** | **24/100** |
+| Class IDs | Shape family | MLP (001) | Transformer (002) | CNN (003) | Residual MLP (004) | U-Net (005) | Global MLP (006) |
+|---|---|---:|---:|---:|---:|---:|---:|
+| 00–09 | Checkerboards | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 |
+| 10–19 | Ellipses | 9/10 | 10/10 | 10/10 | 10/10 | 8/10 | 10/10 |
+| 20–29 | Spirals | 0/10 | 2/10 | 0/10 | 0/10 | 0/10 | 2/10 |
+| 30–39 | Roses | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 |
+| 40–49 | Polygons | 1/10 | 6/10 | 3/10 | 3/10 | 1/10 | 8/10 |
+| 50–59 | Stars | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 |
+| 60–69 | Lissajous curves | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 |
+| 70–79 | Waves | 0/10 | 1/10 | 1/10 | 0/10 | 0/10 | 3/10 |
+| 80–89 | Gaussian rings | 2/10 | 8/10 | 5/10 | 1/10 | 0/10 | 9/10 |
+| 90–99 | Superellipses | 9/10 | 9/10 | 9/10 | 10/10 | 5/10 | 10/10 |
+| **Total** | **All families** | **21/100** | **36/100** | **28/100** | **24/100** | **14/100** | **42/100** |
 
 ### EXP-001 — Flow matching baseline
 
@@ -83,7 +85,7 @@ Train on `x_t = (1 − t)x_0 + tx_1`, where `x_0 ~ N(0, I)` and `x_1` is a targe
 
 **Result.** Validation MSE fell from **1.6418 to 1.1062**. Mean SW1 was **0.0322**, compared with **0.0340** for MLP and **0.0315** for Transformer. **28/100 classes passed**, versus 21 for MLP and 36 for Transformer.
 
-**Finding.** CNN falls between MLP and Transformer on both mean SW1 and passing classes, while taking the longest in these runs. It does not outperform the Transformer on these fit metrics, and 72 classes still fail. Conclusions are limited to this configuration and single seed.
+**Finding.** CNN falls between MLP and Transformer on both mean SW1 and passing classes, with a longer observed runtime than either. It does not outperform the Transformer on these fit metrics, and 72 classes still fail. Conclusions are limited to this configuration and single seed.
 
 [Target vs. generated](experiments/003-cnn/comparison.png) · [Per-class results](experiments/003-cnn/quality.csv) · [Exact configuration](experiments/003-cnn/config.json) · [Metrics](experiments/003-cnn/metrics.json) · [Acceptance thresholds](experiments/003-cnn/quality_report.json)
 
@@ -103,11 +105,43 @@ Train on `x_t = (1 − t)x_0 + tx_1`, where `x_0 ~ N(0, I)` and `x_1` is a targe
 
 [Target vs. generated](experiments/004-residual-mlp/comparison.png) · [Per-class results](experiments/004-residual-mlp/quality.csv) · [Exact configuration](experiments/004-residual-mlp/config.json) · [Metrics](experiments/004-residual-mlp/metrics.json) · [Acceptance thresholds](experiments/004-residual-mlp/quality_report.json)
 
+### EXP-005 — UNet backbone
+
+**Question.** Does a convolutional encoder–decoder with multiscale skip connections improve the pointwise velocity model?
+
+**Method.** A feature-sequence Conv1d U-Net with channels 32 → 64 → 128, downsampling lengths 3 → 2 → 1, nearest-neighbor upsampling, and concatenated encoder skips. Two-convolution SiLU blocks; no normalization or dropout. The three positions represent position/time/class features, not image pixels. The bottleneck has length 1. Parameter count: **220,866**.
+
+**Configuration.** Same training, sampling and evaluation settings as EXP-001: 15,000 updates, batch 2,048, AdamW, LR 0.001, 500-step warmup, cosine decay, seed 42, MPS, 100 Heun steps, 2,000 points per class. Select `--model unet --unet-channels 32`; depth is fixed. Observed duration: **5,488.4 s (91.5 min)** including progress sampling/plots, excluding final sampling/evaluation.
+
+![EXP-005: U-Net particle trajectories](experiments/005-unet/inference.gif)
+
+**Result.** Validation MSE fell from **1.6507 to 1.1305**. Mean SW1 was **0.0437**, versus the baseline's 0.0340; **14/100 classes passed**, versus 21 for MLP and 28 for CNN.
+
+**Finding.** This feature-sequence U-Net underperforms the baseline on both fit metrics. The result does not establish that spatial image U-Nets are unsuitable; this model compresses only three heterogeneous feature positions. The cause of the regression has not been isolated.
+
+[Target vs. generated](experiments/005-unet/comparison.png) · [Per-class results](experiments/005-unet/quality.csv) · [Exact configuration](experiments/005-unet/config.json) · [Metrics](experiments/005-unet/metrics.json) · [Acceptance thresholds](experiments/005-unet/quality_report.json)
+
+### EXP-006 — Global MLP
+
+**Question.** Can global dense mixing plus the surrounding Transformer-like operators achieve strong fit without Q/K/V attention?
+
+**Method.** Use three 64-dimensional feature vectors, four blocks with two pre-LayerNorm residual branches each, and a final LayerNorm and position-vector readout. The first branch flattens all three vectors and applies a dense mixer (192 → 32 → 384), splitting into values and channel-gate logits. Per-vector channel softmax, multiplied by 64, gates values elementwise. The second branch is a SiLU FFN (64 → 256 → 64). No pairwise attention matrix or attention-weighted token aggregation. Parameter count: **214,786**.
+
+**Configuration.** Same training, sampling and evaluation settings as EXP-001. Select `--model global_mlp --hidden-dim 256 --num-layers 4 --global-mlp-dim 64 --global-mlp-bottleneck 32`. Observed duration: **1,475.2 s (24.6 min)** including progress sampling/plots, excluding final sampling/evaluation.
+
+![EXP-006: Global MLP particle trajectories](experiments/006-global-mlp/inference.gif)
+
+**Result.** Validation MSE fell from **1.8889 to 1.1135**. Mean SW1 was **0.0317**, below the baseline's 0.0340 but slightly above Transformer's 0.0315. **42/100 classes passed**, compared with 21 for MLP, 24 for residual MLP, and 36 for Transformer.
+
+**Finding.** This attention-free design has the highest combined-check pass count among these single-seed runs, while Transformer retains the lowest mean SW1. It shows that Q/K/V attention is not required to reach this pass count in this setup. Normalization, gating, feature representation and block structure changed together, so their individual contributions remain unresolved; 58 classes still fail.
+
+[Target vs. generated](experiments/006-global-mlp/comparison.png) · [Per-class results](experiments/006-global-mlp/quality.csv) · [Exact configuration](experiments/006-global-mlp/config.json) · [Metrics](experiments/006-global-mlp/metrics.json) · [Acceptance thresholds](experiments/006-global-mlp/quality_report.json)
+
 ## Evaluation protocol
 
 Each class must pass **all four checks**: sliced Wasserstein-1 (global distribution), nearest-distance precision (proximity to target support), coverage (missing regions), and multiscale grid JS divergence (local density). Thresholds are calibrated against independent target samples: at most 1,000 points per class, five calibration draws, distance tolerance ×1.5, and probability slack 0.05. These are heuristic acceptance checks, not proof of distributional equivalence.
 
-Keep the dataset version, evaluation settings, sampling budget, and seeds fixed when comparing experiments. Report method changes and compute budgets explicitly. These are single-seed results. Transformer and CNN initialization consume different random draws from MLP, so their training streams and validation sets differ; those validation MSE comparisons are not paired. The residual MLP preserves the baseline initialization and RNG consumption, enabling a more controlled residual-only comparison. Final sampling is re-seeded independently of training.
+Keep the dataset version, evaluation settings, sampling budget, and seeds fixed when comparing experiments. Report method changes and compute budgets explicitly. Durations are observed wall-clock times on a shared Mac, including progress sampling; concurrent workloads were not controlled, so these are not isolated speed benchmarks. These are single-seed results. Transformer, CNN, U-Net and Global MLP initialization consume different random draws from MLP, so their training streams and validation sets differ; those validation MSE comparisons are not paired. The residual MLP preserves the baseline initialization and RNG consumption, enabling a more controlled residual-only comparison. Final sampling is re-seeded independently of training.
 
 ## Reproduce
 
@@ -129,7 +163,29 @@ Use `--device cpu` or `--device cuda` on other hardware. Full checkpoints and ge
 
 ## Swap models
 
-Available backbones: `--model mlp`, `--model transformer`, `--model cnn`, and `--model residual_mlp`.
+`--model global_mlp` provides an attention-free combined-operator experiment.
+It uses the Transformer's three feature types and position-token readout, four
+blocks with two pre-LayerNorm residual branches each, and a final LayerNorm.
+Each first branch flattens all three vectors, applies a global dense MLP
+(192 → 32 → 384), and splits its output into values and channel-gate logits.
+Per-token channel softmax, scaled by channel count, gates values elementwise.
+There are no Q/K/V projections, pairwise attention matrices, or weighted token
+aggregation. The second branch is a shared SiLU FFN (64 → 256 → 64).
+With `--hidden-dim 256 --num-layers 4`, the model has 214,786 parameters.
+`--global-mlp-dim` defaults to 64 and `--global-mlp-bottleneck` to 32.
+This tests the combined design, not the isolated effect of any one operator;
+see EXP-006 for results.
+
+The U-Net trial is available as `--model unet --unet-channels 32`. It applies
+Conv1d to each point's position/time/class feature sequence, with two downsampling
+levels (lengths 3 → 2 → 1), channels 32 → 64 → 128, and a decoder returning to
+length 3 via nearest-neighbor resizing and concatenated encoder skips. It uses
+SiLU without normalization or dropout. This is a feature-sequence U-Net, not a
+raster-image U-Net; the bottleneck has length 1. Depth is fixed for this trial,
+so `--num-layers` and `--hidden-dim` are unused. Use the baseline training command
+with `--model unet` and a new output directory. See EXP-005 for results.
+
+Available backbones: `--model mlp`, `--model transformer`, `--model cnn`, `--model residual_mlp`, `--model unet`, and `--model global_mlp`.
 The residual-only ablation is available as `--model residual_mlp`: it keeps the
 MLP's features, parameter layout, initialization, depth and width, adding identity skips
 around the three hidden-to-hidden Linear + SiLU pairs (`h = h + SiLU(Wh + b)`).
@@ -153,4 +209,4 @@ To add a model, implement `__init__(ModelConfig)` and `forward(points[B,2], time
 
 ## Add an experiment
 
-Append one table row and one short entry: **question → method/change → configuration → results → inference GIF → finding**. Save selected artifacts in `experiments/005-<name>/` with the exact config and evaluation report. Retain failures and keep acceptance thresholds unchanged across comparisons.
+Append one table row and one short entry: **question → method/change → configuration → results → inference GIF → finding**. Save selected artifacts in `experiments/007-<name>/` with the exact config and evaluation report. Retain failures and keep acceptance thresholds unchanged across comparisons.
