@@ -1,0 +1,11 @@
+{
+  "source": "outputs/iter014_oriented_mixture",
+  "directory": "014-oriented-mixture",
+  "title": "Principal-axis Gaussian hybrid",
+  "label": "Oriented basis",
+  "short": "Principal-axis Gaussian basis + MLP",
+  "question": "Can principal-axis covariance learning improve thin local supports?",
+  "method": "Return to the EXP-012 hybrid with 384 components per class. Parameterize each covariance by a learned rotation angle and two positive principal widths instead of bounded correlation. Initialize all classes identically using a generic grid, eight orientations and widths 0.12/0.06; retain the compact modulated MLP correction. No shape formulas or target samples enter initialization.",
+  "parameters": 304290,
+  "finding": "Goal reached: 61/100 passed, improving the previous best 50/100. Mean SW1 is 0.02780. All checkerboards pass and several thin-curve families improve, although waves remain unsuccessful. Parameter count is 8.2% above the 281346 reference; training, data, evaluation and 100-step Heun are unchanged."
+}
