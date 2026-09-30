@@ -9,6 +9,8 @@ from model.velocity_cnn import VelocityCNN
 from model.velocity_residual_mlp import VelocityResidualMLP
 from model.velocity_unet import VelocityUNet
 from model.velocity_global_mlp import VelocityGlobalMLP
+from model.velocity_class_conditioned_mlp import VelocityClassConditionedMLP
+from model.velocity_modulated_global_mlp import VelocityModulatedGlobalMLP
 
 
 MODEL_REGISTRY: dict[str, type[nn.Module]] = {
@@ -18,6 +20,8 @@ MODEL_REGISTRY: dict[str, type[nn.Module]] = {
     "residual_mlp": VelocityResidualMLP,
     "unet": VelocityUNet,
     "global_mlp": VelocityGlobalMLP,
+    "class_conditioned_mlp": VelocityClassConditionedMLP,
+    "modulated_global_mlp": VelocityModulatedGlobalMLP,
 }
 
 

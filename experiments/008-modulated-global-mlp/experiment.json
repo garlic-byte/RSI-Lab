@@ -1,0 +1,11 @@
+{
+  "source": "outputs/modulated_global_mlp_run_20260930",
+  "directory": "008-modulated-global-mlp",
+  "title": "Modulated Global MLP",
+  "label": "Modulated",
+  "short": "Three tokens plus zero-initialized time/class modulation",
+  "question": "Can direct time/class modulation improve the best Global MLP without removing its class token?",
+  "method": "Retain three main feature vectors and the original Global MLP branches. Each block receives projected time plus class features and predicts independent scale/shift pairs for mixer and FFN. Zero-initialized modulation preserves the baseline initial output, weights and RNG consumption. No Q/K/V attention. The added parameters make this a larger-capacity comparison.",
+  "parameters": 281346,
+  "finding": "46 classes pass versus 42 for Global MLP, with mean SW1 improving to 0.03033; the best completed result at this stage, below the 60-class goal."
+}

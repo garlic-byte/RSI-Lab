@@ -2,7 +2,7 @@
 
 A compact testbed for recursive self-improvement experiments using 2D flow matching, automated fit checks, and particle trajectory visualizations.
 
-**Status:** training and evaluation baseline established. An automated recursive self-improvement loop is planned; it is not implemented yet.
+**Status:** architecture search in progress toward 60/100 passing classes, with fixed training/evaluation settings and 100-step Heun sampling. Iterations are agent-guided; no standalone recursive self-improvement training loop is implemented.
 
 ## Experiments
 
@@ -13,25 +13,27 @@ A compact testbed for recursive self-improvement experiments using 2D flow match
 | [003](#exp-003--cnn-backbone) | Three-position Conv1d; same training settings | `checkerboard_v2`, 100 classes | 1.1062 | 0.0322 | 28/100 | Fit improves over MLP, trails Transformer, with longer observed runtime than both. |
 | [004](#exp-004--residual-mlp) | MLP with identity skips only; no LayerNorm | `checkerboard_v2`, 100 classes | 1.0889 | 0.0333 | 24/100 | Small improvement over MLP; residuals alone do not close the Transformer gap. |
 | [005](#exp-005--unet-backbone) | Two-level feature-sequence U-Net | `checkerboard_v2`, 100 classes | 1.1305 | 0.0437 | 14/100 | Worse fit than baseline in this configuration. |
-| [006](#exp-006--global-mlp) | Global dense mixing, norms, residuals and channel gates; no attention | `checkerboard_v2`, 100 classes | 1.1135 | 0.0317 | 42/100 | Highest pass count so far; mean SW1 remains slightly above Transformer. |
+| [006](#exp-006--global-mlp) | Global dense mixing, norms, residuals and channel gates; no attention | `checkerboard_v2`, 100 classes | 1.1135 | 0.0317 | 42/100 | Higher pass count than Transformer; mean SW1 slightly above it. |
+| [007](#exp-007--class-conditioned-mlp) | Separate class modulation; two main tokens | `checkerboard_v2`, 100 classes | 1.0864 | 0.0320 | 39/100 | 39 classes pass versus 42 for Global MLP; the small regression does not establish a general disadvantage of conditioning. |
+| [008](#exp-008--modulated-global-mlp) | Three tokens plus zero-initialized time/class modulation | `checkerboard_v2`, 100 classes | 1.1132 | 0.0303 | 46/100 | 46 classes pass versus 42 for Global MLP, with mean SW1 improving to 0.03033; the best completed result at this stage, below the 60-class goal. |
 
 ### Fit-check pass rate by shape family
 
 Each cell shows **passing classes / 10 variants**. A class passes only when all four fit checks pass; these are class-level acceptance rates, not per-point accuracy.
 
-| Class IDs | Shape family | MLP (001) | Transformer (002) | CNN (003) | Residual MLP (004) | U-Net (005) | Global MLP (006) |
-|---|---|---:|---:|---:|---:|---:|---:|
-| 00–09 | Checkerboards | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 |
-| 10–19 | Ellipses | 9/10 | 10/10 | 10/10 | 10/10 | 8/10 | 10/10 |
-| 20–29 | Spirals | 0/10 | 2/10 | 0/10 | 0/10 | 0/10 | 2/10 |
-| 30–39 | Roses | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 |
-| 40–49 | Polygons | 1/10 | 6/10 | 3/10 | 3/10 | 1/10 | 8/10 |
-| 50–59 | Stars | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 |
-| 60–69 | Lissajous curves | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 |
-| 70–79 | Waves | 0/10 | 1/10 | 1/10 | 0/10 | 0/10 | 3/10 |
-| 80–89 | Gaussian rings | 2/10 | 8/10 | 5/10 | 1/10 | 0/10 | 9/10 |
-| 90–99 | Superellipses | 9/10 | 9/10 | 9/10 | 10/10 | 5/10 | 10/10 |
-| **Total** | **All families** | **21/100** | **36/100** | **28/100** | **24/100** | **14/100** | **42/100** |
+| Class IDs | Shape family | MLP (001) | Transformer (002) | CNN (003) | Residual MLP (004) | U-Net (005) | Global MLP (006) | Class cond. (007) | Modulated (008) |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| 00–09 | Checkerboards | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 |
+| 10–19 | Ellipses | 9/10 | 10/10 | 10/10 | 10/10 | 8/10 | 10/10 | 10/10 | 10/10 |
+| 20–29 | Spirals | 0/10 | 2/10 | 0/10 | 0/10 | 0/10 | 2/10 | 2/10 | 3/10 |
+| 30–39 | Roses | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 |
+| 40–49 | Polygons | 1/10 | 6/10 | 3/10 | 3/10 | 1/10 | 8/10 | 5/10 | 10/10 |
+| 50–59 | Stars | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 1/10 | 1/10 |
+| 60–69 | Lissajous curves | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 |
+| 70–79 | Waves | 0/10 | 1/10 | 1/10 | 0/10 | 0/10 | 3/10 | 3/10 | 4/10 |
+| 80–89 | Gaussian rings | 2/10 | 8/10 | 5/10 | 1/10 | 0/10 | 9/10 | 8/10 | 9/10 |
+| 90–99 | Superellipses | 9/10 | 9/10 | 9/10 | 10/10 | 5/10 | 10/10 | 10/10 | 9/10 |
+| **Total** | **All families** | **21/100** | **36/100** | **28/100** | **24/100** | **14/100** | **42/100** | **39/100** | **46/100** |
 
 ### EXP-001 — Flow matching baseline
 
@@ -133,9 +135,41 @@ Train on `x_t = (1 − t)x_0 + tx_1`, where `x_0 ~ N(0, I)` and `x_1` is a targe
 
 **Result.** Validation MSE fell from **1.8889 to 1.1135**. Mean SW1 was **0.0317**, below the baseline's 0.0340 but slightly above Transformer's 0.0315. **42/100 classes passed**, compared with 21 for MLP, 24 for residual MLP, and 36 for Transformer.
 
-**Finding.** This attention-free design has the highest combined-check pass count among these single-seed runs, while Transformer retains the lowest mean SW1. It shows that Q/K/V attention is not required to reach this pass count in this setup. Normalization, gating, feature representation and block structure changed together, so their individual contributions remain unresolved; 58 classes still fail.
+**Finding.** Among EXP-001 through EXP-006, this attention-free design has the highest combined-check pass count, while Transformer has the lowest mean SW1. It shows that Q/K/V attention is not required to reach this pass count in this setup. Normalization, gating, feature representation and block structure changed together, so their individual contributions remain unresolved; 58 classes still fail.
 
 [Target vs. generated](experiments/006-global-mlp/comparison.png) · [Per-class results](experiments/006-global-mlp/quality.csv) · [Exact configuration](experiments/006-global-mlp/config.json) · [Metrics](experiments/006-global-mlp/metrics.json) · [Acceptance thresholds](experiments/006-global-mlp/quality_report.json)
+
+### EXP-007 — Class-conditioned MLP
+
+**Question.** Does injecting class features into every block improve Global MLP?
+
+**Method.** Keep only position and time in the main state. Each block maps the separate class feature to scale and shift, shared by mixer and FFN pre-normalizations. Retain dense mixing, channel softmax gates and residual branches; no Q/K/V attention. Parameter count: **222,914**.
+
+**Configuration.** Same dataset, training and evaluation settings as EXP-001: 15,000 updates, batch 2,048, AdamW, LR 0.001, 500-step warmup, cosine decay, seed 42, MPS, 100 Heun steps and 2,000 points per class. Observed duration: **1,634.7 s (27.2 min)**, including progress sampling/plots and excluding final sampling/evaluation.
+
+![EXP-007: particle trajectories](experiments/007-class-conditioned-mlp/inference.gif)
+
+**Result.** Validation MSE fell from **1.8548 to 1.0864**. Mean SW1: **0.03197**. **39/100 classes passed**.
+
+**Finding.** 39 classes pass versus 42 for Global MLP; the small regression does not establish a general disadvantage of conditioning. This is a single-seed result; family counts are reported only in the table above.
+
+[Target vs. generated](experiments/007-class-conditioned-mlp/comparison.png) · [Per-class results](experiments/007-class-conditioned-mlp/quality.csv) · [Exact configuration](experiments/007-class-conditioned-mlp/config.json) · [Metrics](experiments/007-class-conditioned-mlp/metrics.json) · [Acceptance thresholds](experiments/007-class-conditioned-mlp/quality_report.json)
+
+### EXP-008 — Modulated Global MLP
+
+**Question.** Can direct time/class modulation improve the best Global MLP without removing its class token?
+
+**Method.** Retain three main feature vectors and the original Global MLP branches. Each block receives projected time plus class features and predicts independent scale/shift pairs for mixer and FFN. Zero-initialized modulation preserves the baseline initial output, weights and RNG consumption. No Q/K/V attention. The added parameters make this a larger-capacity comparison. Parameter count: **281,346**.
+
+**Configuration.** Same dataset, training and evaluation settings as EXP-001: 15,000 updates, batch 2,048, AdamW, LR 0.001, 500-step warmup, cosine decay, seed 42, MPS, 100 Heun steps and 2,000 points per class. Observed duration: **2,753.8 s (45.9 min)**, including progress sampling/plots and excluding final sampling/evaluation.
+
+![EXP-008: particle trajectories](experiments/008-modulated-global-mlp/inference.gif)
+
+**Result.** Validation MSE fell from **1.8889 to 1.1132**. Mean SW1: **0.03033**. **46/100 classes passed**.
+
+**Finding.** 46 classes pass versus 42 for Global MLP, with mean SW1 improving to 0.03033; the best completed result at this stage, below the 60-class goal. This is a single-seed result; family counts are reported only in the table above.
+
+[Target vs. generated](experiments/008-modulated-global-mlp/comparison.png) · [Per-class results](experiments/008-modulated-global-mlp/quality.csv) · [Exact configuration](experiments/008-modulated-global-mlp/config.json) · [Metrics](experiments/008-modulated-global-mlp/metrics.json) · [Acceptance thresholds](experiments/008-modulated-global-mlp/quality_report.json)
 
 ## Evaluation protocol
 
@@ -162,6 +196,28 @@ python run_evaluate.py --output-dir outputs/exp001_reproduction
 Use `--device cpu` or `--device cuda` on other hardware. Full checkpoints and generated files stay in the ignored `outputs/` directory. Selected results under `experiments/` are kept for GitHub. `progress.gif` shows training evolution; `inference.gif` shows particle movement through one fixed model.
 
 ## Swap models
+
+`--model modulated_global_mlp` extends the best pass-count baseline (EXP-006)
+without removing any of its three main feature vectors. Each block receives
+`time_features + class_features` and predicts separate scale/shift pairs for
+the mixer and FFN pre-normalizations. The modulation output is zero-initialized;
+base modules are reused with identical initial weights and initialization RNG
+state at the same seed. This is a fresh training run, not checkpoint fine-tuning.
+It has 281,346 parameters with four blocks, feature width 64, bottleneck 32 and
+FFN width 256, versus 214,786 for Global MLP. An equal-capacity baseline would be
+needed to separate conditioning benefits from parameter-count effects.
+Training settings and 100-step Heun sampling are unchanged; see EXP-008.
+
+`--model class_conditioned_mlp` keeps only position and time in the main
+feature sequence and calls `block(features, class_features)` at every layer.
+Each block maps the separate class vector to a scale and shift, applied as
+`LayerNorm(features) * (1 + scale) + shift` before both the global mixer and
+FFN. This is FiLM-style conditioning inspired by a separate cross-conditioning
+path, not Q/K/V cross-attention. Global dense mixing, channel softmax gates,
+SiLU, two residual branches and final normalization remain. With width 64,
+mixer bottleneck 32, FFN width 256 and four blocks it has 222,914 parameters
+(versus Global MLP's 214,786). The experiment retains 100 Heun steps and all
+baseline training settings; see EXP-007.
 
 `--model global_mlp` provides an attention-free combined-operator experiment.
 It uses the Transformer's three feature types and position-token readout, four
@@ -209,4 +265,4 @@ To add a model, implement `__init__(ModelConfig)` and `forward(points[B,2], time
 
 ## Add an experiment
 
-Append one table row and one short entry: **question → method/change → configuration → results → inference GIF → finding**. Save selected artifacts in `experiments/007-<name>/` with the exact config and evaluation report. Retain failures and keep acceptance thresholds unchanged across comparisons.
+Append one table row and one short entry: **question → method/change → configuration → results → inference GIF → finding**. Save selected artifacts in `experiments/009-<name>/` with the exact config and evaluation report. Retain failures and keep acceptance thresholds unchanged across comparisons.

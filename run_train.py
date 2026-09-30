@@ -23,6 +23,8 @@ def main() -> None:
             parser.add_argument(flag, type=type(value), default=value)
     parser.add_argument("--hidden-dim", type=int, default=128)
     parser.add_argument("--num-layers", type=int, default=4)
+    parser.add_argument("--spatial-frequencies", type=int, default=6,
+                        help="Number of coordinate Fourier frequencies inside the model")
     parser.add_argument("--model", choices=tuple(MODEL_REGISTRY), default="mlp")
     parser.add_argument("--transformer-dim", type=int, default=64)
     parser.add_argument("--num-heads", type=int, default=4)
@@ -36,7 +38,8 @@ def main() -> None:
                                transformer_dim=args.pop("transformer_dim"), num_heads=args.pop("num_heads"),
                                cnn_channels=args.pop("cnn_channels"), unet_channels=args.pop("unet_channels"),
                                global_mlp_dim=args.pop("global_mlp_dim"),
-                               global_mlp_bottleneck=args.pop("global_mlp_bottleneck"))
+                               global_mlp_bottleneck=args.pop("global_mlp_bottleneck"),
+                               spatial_frequencies=args.pop("spatial_frequencies"))
     try:
         model_config.validate()
     except ValueError as error:

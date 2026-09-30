@@ -1,0 +1,11 @@
+{
+  "source": "outputs/class_conditioned_mlp_run_20260930",
+  "directory": "007-class-conditioned-mlp",
+  "title": "Class-conditioned MLP",
+  "label": "Class cond.",
+  "short": "Separate class modulation; two main tokens",
+  "question": "Does injecting class features into every block improve Global MLP?",
+  "method": "Keep only position and time in the main state. Each block maps the separate class feature to scale and shift, shared by mixer and FFN pre-normalizations. Retain dense mixing, channel softmax gates and residual branches; no Q/K/V attention.",
+  "parameters": 222914,
+  "finding": "39 classes pass versus 42 for Global MLP; the small regression does not establish a general disadvantage of conditioning."
+}

@@ -39,7 +39,7 @@ class ModelConfig:
             raise ValueError("cnn_channels must be positive")
         if self.model_type == "unet" and self.unet_channels <= 0:
             raise ValueError("unet_channels must be positive")
-        if self.model_type == "global_mlp" and min(self.global_mlp_dim, self.global_mlp_bottleneck) <= 0:
+        if self.model_type in ("global_mlp", "class_conditioned_mlp", "modulated_global_mlp") and min(self.global_mlp_dim, self.global_mlp_bottleneck) <= 0:
             raise ValueError("global_mlp_dim and global_mlp_bottleneck must be positive")
 
 
