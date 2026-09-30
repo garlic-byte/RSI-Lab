@@ -5,14 +5,28 @@ from dataclasses import dataclass
 
 @dataclass
 class ModelConfig:
-    """Conditional velocity MLP architecture."""
+    """Architecture settings for models sharing the (points,time,labels) API."""
 
+    model_type: str = "mlp"
+    """Registered model name; omitted fields in old checkpoints default to MLP."""
     hidden_dim: int = 128
     num_layers: int = 4
     num_classes: int = 100
     embedding_dim: int = 16
     time_frequencies: int = 8
     spatial_frequencies: int = 6
+    transformer_dim: int = 64
+    """Transformer token width; hidden_dim sets its feed-forward width."""
+    num_heads: int = 4
+
+    def validate(self) -> None:
+        """Reject invalid common dimensions before constructing a model."""
+        for name in ("hidden_dim", "num_layers", "num_classes", "embedding_dim", "time_frequencies", "spatial_frequencies"):
+            if getattr(self, name) <= 0:
+                raise ValueError(f"{name} must be positive")
+        if self.model_type == "transformer":
+            if self.transformer_dim <= 0 or self.num_heads <= 0 or self.transformer_dim % self.num_heads:
+                raise ValueError("transformer_dim must be positive and divisible by positive num_heads")
 
 
 @dataclass

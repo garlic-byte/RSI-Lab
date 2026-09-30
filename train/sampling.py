@@ -3,11 +3,11 @@
 import torch
 from collections.abc import Callable
 
-from model.velocity_mlp import VelocityMLP
+from torch import nn
 
 
 @torch.inference_mode()
-def generate_points(model: VelocityMLP, labels: torch.Tensor, steps: int = 100,
+def generate_points(model: nn.Module, labels: torch.Tensor, steps: int = 100,
                     initial_noise: torch.Tensor | None = None,
                     on_step: Callable[[int, torch.Tensor], None] | None = None) -> torch.Tensor:
     """Integrate with Heun on [0,1]; optionally reuse fixed Gaussian noise.

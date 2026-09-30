@@ -12,7 +12,7 @@ from torch import nn
 
 from config.train_config import ModelConfig, TrainConfig
 from data.shapes import DATASET_VERSION, SHAPE_NAMES, sample_batch, sample_shape
-from model.velocity_mlp import VelocityMLP
+from model.registry import build_model
 from train.sampling import generate_points
 from utils.plotting import plot_history, plot_shapes
 from utils.device import resolve_device, synchronize_device
@@ -66,7 +66,7 @@ def run_training(config: TrainConfig, model_config: ModelConfig) -> None:
                 "dataset_version": DATASET_VERSION, "resolved_device": str(device)}
     (output_dir / "config.json").write_text(json.dumps(settings, indent=2) + "\n")
 
-    model = VelocityMLP(model_config).to(device)
+    model = build_model(model_config).to(device)
     progress_noise = None
     progress_paths: list[Path] = []
     if config.save_progress:
@@ -87,7 +87,7 @@ def run_training(config: TrainConfig, model_config: ModelConfig) -> None:
     window_count = 0
     synchronize_device(device)
     started = time.perf_counter()
-    print(f"device={device}, parameters={sum(p.numel() for p in model.parameters()):,}, initial_val={initial_loss:.5f}", flush=True)
+    print(f"model={model_config.model_type}, device={device}, parameters={sum(p.numel() for p in model.parameters()):,}, initial_val={initial_loss:.5f}", flush=True)
 
     for step in range(1, config.steps + 1):
         model.train()

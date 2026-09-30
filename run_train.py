@@ -1,10 +1,11 @@
-"""Train the conditional MLP on configurable analytic noisy point distributions."""
+"""Train a selectable conditional velocity model on noisy point distributions."""
 
 import argparse
 from dataclasses import fields
 
 from config.train_config import ModelConfig, TrainConfig
 from train.trainer import run_training
+from model.registry import MODEL_REGISTRY
 
 
 def main() -> None:
@@ -22,10 +23,17 @@ def main() -> None:
             parser.add_argument(flag, type=type(value), default=value)
     parser.add_argument("--hidden-dim", type=int, default=128)
     parser.add_argument("--num-layers", type=int, default=4)
+    parser.add_argument("--model", choices=tuple(MODEL_REGISTRY), default="mlp")
+    parser.add_argument("--transformer-dim", type=int, default=64)
+    parser.add_argument("--num-heads", type=int, default=4)
     args = vars(parser.parse_args())
-    model_config = ModelConfig(hidden_dim=args.pop("hidden_dim"), num_layers=args.pop("num_layers"), num_classes=args["num_classes"])
-    if model_config.hidden_dim <= 0 or model_config.num_layers <= 0:
-        parser.error("hidden-dim and num-layers must be positive")
+    model_config = ModelConfig(hidden_dim=args.pop("hidden_dim"), num_layers=args.pop("num_layers"),
+                               num_classes=args["num_classes"], model_type=args.pop("model"),
+                               transformer_dim=args.pop("transformer_dim"), num_heads=args.pop("num_heads"))
+    try:
+        model_config.validate()
+    except ValueError as error:
+        parser.error(str(error))
     run_training(TrainConfig(**args), model_config)
 
 

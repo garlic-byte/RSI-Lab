@@ -7,7 +7,7 @@ import torch
 
 from config.train_config import ModelConfig
 from data.shapes import LEGACY_VERSION, get_shape_names
-from model.velocity_mlp import VelocityMLP
+from model.registry import build_model
 from train.sampling import generate_points
 from utils.plotting import plot_shapes
 from utils.device import resolve_device
@@ -35,13 +35,14 @@ def main() -> None:
     torch.manual_seed(args.seed)
     device = resolve_device(args.device)
     checkpoint = torch.load(args.checkpoint, map_location="cpu", weights_only=True)
-    model = VelocityMLP(ModelConfig(**checkpoint["config"]["model"])).to(device)
+    model_config = ModelConfig(**checkpoint["config"]["model"])
+    model = build_model(model_config).to(device)
     model.load_state_dict(checkpoint["model"])
     dataset_version = checkpoint["config"].get("dataset_version", LEGACY_VERSION)
-    shape_names = checkpoint["config"].get("shape_names", get_shape_names(dataset_version)[:model.class_embedding.num_embeddings])
+    shape_names = checkpoint["config"].get("shape_names", get_shape_names(dataset_version)[:model_config.num_classes])
     clouds = []
     trajectories = {}
-    for class_id in range(model.class_embedding.num_embeddings):
+    for class_id in range(model_config.num_classes):
         labels = torch.full((args.points,), class_id, dtype=torch.long, device=device)
         recorder = (trajectory_recorder(trajectories, class_id, args.animation_points)
                     if args.inference_animation and class_id % 10 == 9 else None)
