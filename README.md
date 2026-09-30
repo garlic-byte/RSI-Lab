@@ -22,24 +22,25 @@ A compact testbed for recursive self-improvement experiments using 2D flow match
 | [012](#exp-012--correlated-gaussian-basis) | Full-covariance Gaussian basis + MLP | `checkerboard_v2`, 100 classes | 1.0920 | 0.0278 | 50/100 | New best: 50/100 passed, up from 46/100 in EXP-008 and 39/100 in EXP-011. Mean SW1 also improves to 0.02782. Several remaining spiral, star and wave classes narrowly fail precision, motivating a density-consistent velocity model. |
 | [013](#exp-013--density-consistent-gaussian-mixture) | Full-covariance Gaussian mixture | `checkerboard_v2`, 100 classes | 1.0935 | 0.0295 | 5/100 | Only 5/100 passed; removing the MLP correction severely regresses combined acceptance despite mean SW1 of 0.02950. Reject this candidate and retain the 50/100 hybrid from EXP-012. |
 | [014](#exp-014--principal-axis-gaussian-hybrid) | Principal-axis Gaussian basis + MLP | `checkerboard_v2`, 100 classes | 1.0912 | 0.0278 | 61/100 | Goal reached: 61/100 passed, improving the previous best 50/100. Mean SW1 is 0.02780. All checkerboards pass and several thin-curve families improve, although waves remain unsuccessful. Parameter count is 8.2% above the 281346 reference; training, data, evaluation and 100-step Heun are unchanged. |
+| [015](#exp-015--velocity-guided-gaussian-hybrid) | Gaussian velocity-guided MLP | `checkerboard_v2`, 100 classes | 1.0911 | 0.0281 | 82/100 | 80-class goal reached: 82/100 passed versus 61/100 in EXP-014. Thin-curve families improve substantially, while some Gaussian-ring and superellipse classes regress. Mean SW1 is slightly worse (0.02806 versus 0.02780); the improvement is in the fixed combined acceptance checks, not every metric. Parameter count remains within the original 281346 ±10% budget. |
 
 ### Fit-check pass rate by shape family
 
 Each cell shows **passing classes / 10 variants**. A class passes only when all four fit checks pass; these are class-level acceptance rates, not per-point accuracy.
 
-| Class IDs | Shape family | MLP (001) | Transformer (002) | CNN (003) | Residual MLP (004) | U-Net (005) | Global MLP (006) | Class cond. (007) | Modulated (008) | Fourier16 (009) | Adaptive Fourier (010) | Gaussian basis (011) | Correlated basis (012) | Pure mixture (013) | Oriented basis (014) |
-|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 00–09 | Checkerboards | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 4/10 | 7/10 | 3/10 | 10/10 |
-| 10–19 | Ellipses | 9/10 | 10/10 | 10/10 | 10/10 | 8/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | 9/10 | 10/10 | 0/10 | 10/10 |
-| 20–29 | Spirals | 0/10 | 2/10 | 0/10 | 0/10 | 0/10 | 2/10 | 2/10 | 3/10 | 3/10 | 3/10 | 0/10 | 0/10 | 0/10 | 1/10 |
-| 30–39 | Roses | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 2/10 | 4/10 | 2/10 | 6/10 |
-| 40–49 | Polygons | 1/10 | 6/10 | 3/10 | 3/10 | 1/10 | 8/10 | 5/10 | 10/10 | 6/10 | 7/10 | 7/10 | 10/10 | 0/10 | 10/10 |
-| 50–59 | Stars | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 1/10 | 1/10 | 2/10 | 0/10 | 0/10 | 0/10 | 0/10 | 2/10 |
-| 60–69 | Lissajous curves | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 3/10 |
-| 70–79 | Waves | 0/10 | 1/10 | 1/10 | 0/10 | 0/10 | 3/10 | 3/10 | 4/10 | 3/10 | 3/10 | 0/10 | 0/10 | 0/10 | 0/10 |
-| 80–89 | Gaussian rings | 2/10 | 8/10 | 5/10 | 1/10 | 0/10 | 9/10 | 8/10 | 9/10 | 9/10 | 9/10 | 7/10 | 9/10 | 0/10 | 9/10 |
-| 90–99 | Superellipses | 9/10 | 9/10 | 9/10 | 10/10 | 5/10 | 10/10 | 10/10 | 9/10 | 10/10 | 9/10 | 10/10 | 10/10 | 0/10 | 10/10 |
-| **Total** | **All families** | **21/100** | **36/100** | **28/100** | **24/100** | **14/100** | **42/100** | **39/100** | **46/100** | **43/100** | **41/100** | **39/100** | **50/100** | **5/100** | **61/100** |
+| Class IDs | Shape family | MLP (001) | Transformer (002) | CNN (003) | Residual MLP (004) | U-Net (005) | Global MLP (006) | Class cond. (007) | Modulated (008) | Fourier16 (009) | Adaptive Fourier (010) | Gaussian basis (011) | Correlated basis (012) | Pure mixture (013) | Oriented basis (014) | Guided basis (015) |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 00–09 | Checkerboards | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 4/10 | 7/10 | 3/10 | 10/10 | 10/10 |
+| 10–19 | Ellipses | 9/10 | 10/10 | 10/10 | 10/10 | 8/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | 9/10 | 10/10 | 0/10 | 10/10 | 10/10 |
+| 20–29 | Spirals | 0/10 | 2/10 | 0/10 | 0/10 | 0/10 | 2/10 | 2/10 | 3/10 | 3/10 | 3/10 | 0/10 | 0/10 | 0/10 | 1/10 | 6/10 |
+| 30–39 | Roses | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 2/10 | 4/10 | 2/10 | 6/10 | 7/10 |
+| 40–49 | Polygons | 1/10 | 6/10 | 3/10 | 3/10 | 1/10 | 8/10 | 5/10 | 10/10 | 6/10 | 7/10 | 7/10 | 10/10 | 0/10 | 10/10 | 10/10 |
+| 50–59 | Stars | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 1/10 | 1/10 | 2/10 | 0/10 | 0/10 | 0/10 | 0/10 | 2/10 | 7/10 |
+| 60–69 | Lissajous curves | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 3/10 | 8/10 |
+| 70–79 | Waves | 0/10 | 1/10 | 1/10 | 0/10 | 0/10 | 3/10 | 3/10 | 4/10 | 3/10 | 3/10 | 0/10 | 0/10 | 0/10 | 0/10 | 8/10 |
+| 80–89 | Gaussian rings | 2/10 | 8/10 | 5/10 | 1/10 | 0/10 | 9/10 | 8/10 | 9/10 | 9/10 | 9/10 | 7/10 | 9/10 | 0/10 | 9/10 | 7/10 |
+| 90–99 | Superellipses | 9/10 | 9/10 | 9/10 | 10/10 | 5/10 | 10/10 | 10/10 | 9/10 | 10/10 | 9/10 | 10/10 | 10/10 | 0/10 | 10/10 | 9/10 |
+| **Total** | **All families** | **21/100** | **36/100** | **28/100** | **24/100** | **14/100** | **42/100** | **39/100** | **46/100** | **43/100** | **41/100** | **39/100** | **50/100** | **5/100** | **61/100** | **82/100** |
 
 ### EXP-001 — Flow matching baseline
 
@@ -273,6 +274,22 @@ Train on `x_t = (1 − t)x_0 + tx_1`, where `x_0 ~ N(0, I)` and `x_1` is a targe
 
 [Target vs. generated](experiments/014-oriented-mixture/comparison.png) · [Per-class results](experiments/014-oriented-mixture/quality.csv) · [Exact configuration](experiments/014-oriented-mixture/config.json) · [Metrics](experiments/014-oriented-mixture/metrics.json) · [Acceptance thresholds](experiments/014-oriented-mixture/quality_report.json)
 
+### EXP-015 — Velocity-guided Gaussian hybrid
+
+**Question.** Can the correction MLP use local geometry predicted by the Gaussian branch?
+
+**Method.** Start from EXP-014 and add a zero-initialized 2-to-32 projection of the Gaussian branch velocity to the position token. This exposes local geometry to the correction MLP, adds only 64 parameters and preserves the baseline initial function and RNG stream. Both branches learn jointly through the original velocity MSE; external inputs, outputs and Heun sampling are unchanged. Parameter count: **304,354**.
+
+**Configuration.** Same dataset, training and evaluation settings as EXP-001: 15,000 updates, batch 2,048, AdamW, LR 0.001, 500-step warmup, cosine decay, seed 42, MPS, 100 Heun steps and 2,000 points per class. Observed duration: **4,035.0 s (67.2 min)**, including progress sampling/plots and excluding final sampling/evaluation.
+
+![EXP-015: particle trajectories](experiments/015-guided-mixture/inference.gif)
+
+**Result.** Validation MSE fell from **1.2631 to 1.0911**. Mean SW1: **0.02806**. **82/100 classes passed**.
+
+**Finding.** 80-class goal reached: 82/100 passed versus 61/100 in EXP-014. Thin-curve families improve substantially, while some Gaussian-ring and superellipse classes regress. Mean SW1 is slightly worse (0.02806 versus 0.02780); the improvement is in the fixed combined acceptance checks, not every metric. Parameter count remains within the original 281346 ±10% budget. This is a single-seed result; family counts are reported only in the table above.
+
+[Target vs. generated](experiments/015-guided-mixture/comparison.png) · [Per-class results](experiments/015-guided-mixture/quality.csv) · [Exact configuration](experiments/015-guided-mixture/config.json) · [Metrics](experiments/015-guided-mixture/metrics.json) · [Acceptance thresholds](experiments/015-guided-mixture/quality_report.json)
+
 ## Evaluation protocol
 
 Each class must pass **all four checks**: sliced Wasserstein-1 (global distribution), nearest-distance precision (proximity to target support), coverage (missing regions), and multiscale grid JS divergence (local density). Thresholds are calibrated against independent target samples: at most 1,000 points per class, five calibration draws, distance tolerance ×1.5, and probability slack 0.05. These are heuristic acceptance checks, not proof of distributional equivalence.
@@ -367,4 +384,4 @@ To add a model, implement `__init__(ModelConfig)` and `forward(points[B,2], time
 
 ## Add an experiment
 
-Append one table row and one short entry: **question → method/change → configuration → results → inference GIF → finding**. Save selected artifacts in `experiments/015-<name>/` with the exact config and evaluation report. Retain failures and keep acceptance thresholds unchanged across comparisons.
+Append one table row and one short entry: **question → method/change → configuration → results → inference GIF → finding**. Save selected artifacts in `experiments/016-<name>/` with the exact config and evaluation report. Retain failures and keep acceptance thresholds unchanged across comparisons.

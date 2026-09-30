@@ -1,0 +1,11 @@
+{
+  "source": "outputs/iter015_guided_mixture",
+  "directory": "015-guided-mixture",
+  "title": "Velocity-guided Gaussian hybrid",
+  "label": "Guided basis",
+  "short": "Gaussian velocity-guided MLP",
+  "question": "Can the correction MLP use local geometry predicted by the Gaussian branch?",
+  "method": "Start from EXP-014 and add a zero-initialized 2-to-32 projection of the Gaussian branch velocity to the position token. This exposes local geometry to the correction MLP, adds only 64 parameters and preserves the baseline initial function and RNG stream. Both branches learn jointly through the original velocity MSE; external inputs, outputs and Heun sampling are unchanged.",
+  "parameters": 304354,
+  "finding": "80-class goal reached: 82/100 passed versus 61/100 in EXP-014. Thin-curve families improve substantially, while some Gaussian-ring and superellipse classes regress. Mean SW1 is slightly worse (0.02806 versus 0.02780); the improvement is in the fixed combined acceptance checks, not every metric. Parameter count remains within the original 281346 \u00b110% budget."
+}
