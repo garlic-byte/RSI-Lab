@@ -16,24 +16,25 @@ A compact testbed for recursive self-improvement experiments using 2D flow match
 | [006](#exp-006--global-mlp) | Global dense mixing, norms, residuals and channel gates; no attention | `checkerboard_v2`, 100 classes | 1.1135 | 0.0317 | 42/100 | Higher pass count than Transformer; mean SW1 slightly above it. |
 | [007](#exp-007--class-conditioned-mlp) | Separate class modulation; two main tokens | `checkerboard_v2`, 100 classes | 1.0864 | 0.0320 | 39/100 | 39 classes pass versus 42 for Global MLP; the small regression does not establish a general disadvantage of conditioning. |
 | [008](#exp-008--modulated-global-mlp) | Three tokens plus zero-initialized time/class modulation | `checkerboard_v2`, 100 classes | 1.1132 | 0.0303 | 46/100 | 46 classes pass versus 42 for Global MLP, with mean SW1 improving to 0.03033; the best completed result at this stage, below the 60-class goal. |
+| [009](#exp-009--extended-fixed-fourier-features) | Modulated MLP; 16 fixed coordinate frequencies | `checkerboard_v2`, 100 classes | 1.0631 | 0.0315 | 43/100 | 43 classes pass versus 46 for EXP-008. More fixed high-frequency features do not improve the acceptance count; retain EXP-008 as the best baseline. |
 
 ### Fit-check pass rate by shape family
 
 Each cell shows **passing classes / 10 variants**. A class passes only when all four fit checks pass; these are class-level acceptance rates, not per-point accuracy.
 
-| Class IDs | Shape family | MLP (001) | Transformer (002) | CNN (003) | Residual MLP (004) | U-Net (005) | Global MLP (006) | Class cond. (007) | Modulated (008) |
-|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| 00–09 | Checkerboards | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 |
-| 10–19 | Ellipses | 9/10 | 10/10 | 10/10 | 10/10 | 8/10 | 10/10 | 10/10 | 10/10 |
-| 20–29 | Spirals | 0/10 | 2/10 | 0/10 | 0/10 | 0/10 | 2/10 | 2/10 | 3/10 |
-| 30–39 | Roses | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 |
-| 40–49 | Polygons | 1/10 | 6/10 | 3/10 | 3/10 | 1/10 | 8/10 | 5/10 | 10/10 |
-| 50–59 | Stars | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 1/10 | 1/10 |
-| 60–69 | Lissajous curves | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 |
-| 70–79 | Waves | 0/10 | 1/10 | 1/10 | 0/10 | 0/10 | 3/10 | 3/10 | 4/10 |
-| 80–89 | Gaussian rings | 2/10 | 8/10 | 5/10 | 1/10 | 0/10 | 9/10 | 8/10 | 9/10 |
-| 90–99 | Superellipses | 9/10 | 9/10 | 9/10 | 10/10 | 5/10 | 10/10 | 10/10 | 9/10 |
-| **Total** | **All families** | **21/100** | **36/100** | **28/100** | **24/100** | **14/100** | **42/100** | **39/100** | **46/100** |
+| Class IDs | Shape family | MLP (001) | Transformer (002) | CNN (003) | Residual MLP (004) | U-Net (005) | Global MLP (006) | Class cond. (007) | Modulated (008) | Fourier16 (009) |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 00–09 | Checkerboards | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 |
+| 10–19 | Ellipses | 9/10 | 10/10 | 10/10 | 10/10 | 8/10 | 10/10 | 10/10 | 10/10 | 10/10 |
+| 20–29 | Spirals | 0/10 | 2/10 | 0/10 | 0/10 | 0/10 | 2/10 | 2/10 | 3/10 | 3/10 |
+| 30–39 | Roses | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 |
+| 40–49 | Polygons | 1/10 | 6/10 | 3/10 | 3/10 | 1/10 | 8/10 | 5/10 | 10/10 | 6/10 |
+| 50–59 | Stars | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 1/10 | 1/10 | 2/10 |
+| 60–69 | Lissajous curves | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 |
+| 70–79 | Waves | 0/10 | 1/10 | 1/10 | 0/10 | 0/10 | 3/10 | 3/10 | 4/10 | 3/10 |
+| 80–89 | Gaussian rings | 2/10 | 8/10 | 5/10 | 1/10 | 0/10 | 9/10 | 8/10 | 9/10 | 9/10 |
+| 90–99 | Superellipses | 9/10 | 9/10 | 9/10 | 10/10 | 5/10 | 10/10 | 10/10 | 9/10 | 10/10 |
+| **Total** | **All families** | **21/100** | **36/100** | **28/100** | **24/100** | **14/100** | **42/100** | **39/100** | **46/100** | **43/100** |
 
 ### EXP-001 — Flow matching baseline
 
@@ -171,6 +172,22 @@ Train on `x_t = (1 − t)x_0 + tx_1`, where `x_0 ~ N(0, I)` and `x_1` is a targe
 
 [Target vs. generated](experiments/008-modulated-global-mlp/comparison.png) · [Per-class results](experiments/008-modulated-global-mlp/quality.csv) · [Exact configuration](experiments/008-modulated-global-mlp/config.json) · [Metrics](experiments/008-modulated-global-mlp/metrics.json) · [Acceptance thresholds](experiments/008-modulated-global-mlp/quality_report.json)
 
+### EXP-009 — Extended fixed Fourier features
+
+**Question.** Does increasing spatial feature bandwidth improve the 46-class model?
+
+**Method.** Keep the EXP-008 backbone and change only the model spatial_frequencies from 6 to 16 (coordinate harmonics pi through 16*pi). The position projection grows accordingly; all training and sampling settings are unchanged. Reproduce with --model modulated_global_mlp --spatial-frequencies 16 --hidden-dim 256 --num-layers 4. Parameter count: **283,906**.
+
+**Configuration.** Same dataset, training and evaluation settings as EXP-001: 15,000 updates, batch 2,048, AdamW, LR 0.001, 500-step warmup, cosine decay, seed 42, MPS, 100 Heun steps and 2,000 points per class. Observed duration: **2,113.1 s (35.2 min)**, including progress sampling/plots and excluding final sampling/evaluation.
+
+![EXP-009: particle trajectories](experiments/009-fourier16/inference.gif)
+
+**Result.** Validation MSE fell from **1.8645 to 1.0631**. Mean SW1: **0.03148**. **43/100 classes passed**.
+
+**Finding.** 43 classes pass versus 46 for EXP-008. More fixed high-frequency features do not improve the acceptance count; retain EXP-008 as the best baseline. This is a single-seed result; family counts are reported only in the table above.
+
+[Target vs. generated](experiments/009-fourier16/comparison.png) · [Per-class results](experiments/009-fourier16/quality.csv) · [Exact configuration](experiments/009-fourier16/config.json) · [Metrics](experiments/009-fourier16/metrics.json) · [Acceptance thresholds](experiments/009-fourier16/quality_report.json)
+
 ## Evaluation protocol
 
 Each class must pass **all four checks**: sliced Wasserstein-1 (global distribution), nearest-distance precision (proximity to target support), coverage (missing regions), and multiscale grid JS divergence (local density). Thresholds are calibrated against independent target samples: at most 1,000 points per class, five calibration draws, distance tolerance ×1.5, and probability slack 0.05. These are heuristic acceptance checks, not proof of distributional equivalence.
@@ -265,4 +282,4 @@ To add a model, implement `__init__(ModelConfig)` and `forward(points[B,2], time
 
 ## Add an experiment
 
-Append one table row and one short entry: **question → method/change → configuration → results → inference GIF → finding**. Save selected artifacts in `experiments/009-<name>/` with the exact config and evaluation report. Retain failures and keep acceptance thresholds unchanged across comparisons.
+Append one table row and one short entry: **question → method/change → configuration → results → inference GIF → finding**. Save selected artifacts in `experiments/010-<name>/` with the exact config and evaluation report. Retain failures and keep acceptance thresholds unchanged across comparisons.

@@ -1,0 +1,11 @@
+{
+  "source": "outputs/iter009_fourier16",
+  "directory": "009-fourier16",
+  "title": "Extended fixed Fourier features",
+  "label": "Fourier16",
+  "short": "Modulated MLP; 16 fixed coordinate frequencies",
+  "question": "Does increasing spatial feature bandwidth improve the 46-class model?",
+  "method": "Keep the EXP-008 backbone and change only the model spatial_frequencies from 6 to 16 (coordinate harmonics pi through 16*pi). The position projection grows accordingly; all training and sampling settings are unchanged. Reproduce with --model modulated_global_mlp --spatial-frequencies 16 --hidden-dim 256 --num-layers 4.",
+  "parameters": 283906,
+  "finding": "43 classes pass versus 46 for EXP-008. More fixed high-frequency features do not improve the acceptance count; retain EXP-008 as the best baseline."
+}
