@@ -19,24 +19,25 @@ A compact testbed for recursive self-improvement experiments using 2D flow match
 | [009](#exp-009--extended-fixed-fourier-features) | Modulated MLP; 16 fixed coordinate frequencies | `checkerboard_v2`, 100 classes | 1.0631 | 0.0315 | 43/100 | 43 classes pass versus 46 for EXP-008. More fixed high-frequency features do not improve the acceptance count; retain EXP-008 as the best baseline. |
 | [010](#exp-010--adaptive-fourier-features) | Modulated Global MLP + learned Fourier basis | `checkerboard_v2`, 100 classes | 1.0630 | 0.0314 | 41/100 | 41/100 passed, below the 46/100 best in EXP-008. Learned spatial directions did not improve the combined acceptance checks; retain EXP-008 as the best model. |
 | [011](#exp-011--learned-gaussian-basis-with-mlp-correction) | Gaussian basis + modulated MLP | `checkerboard_v2`, 100 classes | 1.0928 | 0.0279 | 39/100 | 39/100 passed versus the best 46/100 in EXP-008, despite the lowest mean SW1 so far (0.02794). Some checkerboard and rose classes now pass, but spiral and wave performance regresses. Local density modeling is promising but does not yet improve overall acceptance. |
+| [012](#exp-012--correlated-gaussian-basis) | Full-covariance Gaussian basis + MLP | `checkerboard_v2`, 100 classes | 1.0920 | 0.0278 | 50/100 | New best: 50/100 passed, up from 46/100 in EXP-008 and 39/100 in EXP-011. Mean SW1 also improves to 0.02782. Several remaining spiral, star and wave classes narrowly fail precision, motivating a density-consistent velocity model. |
 
 ### Fit-check pass rate by shape family
 
 Each cell shows **passing classes / 10 variants**. A class passes only when all four fit checks pass; these are class-level acceptance rates, not per-point accuracy.
 
-| Class IDs | Shape family | MLP (001) | Transformer (002) | CNN (003) | Residual MLP (004) | U-Net (005) | Global MLP (006) | Class cond. (007) | Modulated (008) | Fourier16 (009) | Adaptive Fourier (010) | Gaussian basis (011) |
-|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 00–09 | Checkerboards | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 4/10 |
-| 10–19 | Ellipses | 9/10 | 10/10 | 10/10 | 10/10 | 8/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | 9/10 |
-| 20–29 | Spirals | 0/10 | 2/10 | 0/10 | 0/10 | 0/10 | 2/10 | 2/10 | 3/10 | 3/10 | 3/10 | 0/10 |
-| 30–39 | Roses | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 2/10 |
-| 40–49 | Polygons | 1/10 | 6/10 | 3/10 | 3/10 | 1/10 | 8/10 | 5/10 | 10/10 | 6/10 | 7/10 | 7/10 |
-| 50–59 | Stars | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 1/10 | 1/10 | 2/10 | 0/10 | 0/10 |
-| 60–69 | Lissajous curves | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 |
-| 70–79 | Waves | 0/10 | 1/10 | 1/10 | 0/10 | 0/10 | 3/10 | 3/10 | 4/10 | 3/10 | 3/10 | 0/10 |
-| 80–89 | Gaussian rings | 2/10 | 8/10 | 5/10 | 1/10 | 0/10 | 9/10 | 8/10 | 9/10 | 9/10 | 9/10 | 7/10 |
-| 90–99 | Superellipses | 9/10 | 9/10 | 9/10 | 10/10 | 5/10 | 10/10 | 10/10 | 9/10 | 10/10 | 9/10 | 10/10 |
-| **Total** | **All families** | **21/100** | **36/100** | **28/100** | **24/100** | **14/100** | **42/100** | **39/100** | **46/100** | **43/100** | **41/100** | **39/100** |
+| Class IDs | Shape family | MLP (001) | Transformer (002) | CNN (003) | Residual MLP (004) | U-Net (005) | Global MLP (006) | Class cond. (007) | Modulated (008) | Fourier16 (009) | Adaptive Fourier (010) | Gaussian basis (011) | Correlated basis (012) |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 00–09 | Checkerboards | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 4/10 | 7/10 |
+| 10–19 | Ellipses | 9/10 | 10/10 | 10/10 | 10/10 | 8/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | 9/10 | 10/10 |
+| 20–29 | Spirals | 0/10 | 2/10 | 0/10 | 0/10 | 0/10 | 2/10 | 2/10 | 3/10 | 3/10 | 3/10 | 0/10 | 0/10 |
+| 30–39 | Roses | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 2/10 | 4/10 |
+| 40–49 | Polygons | 1/10 | 6/10 | 3/10 | 3/10 | 1/10 | 8/10 | 5/10 | 10/10 | 6/10 | 7/10 | 7/10 | 10/10 |
+| 50–59 | Stars | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 1/10 | 1/10 | 2/10 | 0/10 | 0/10 | 0/10 |
+| 60–69 | Lissajous curves | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 |
+| 70–79 | Waves | 0/10 | 1/10 | 1/10 | 0/10 | 0/10 | 3/10 | 3/10 | 4/10 | 3/10 | 3/10 | 0/10 | 0/10 |
+| 80–89 | Gaussian rings | 2/10 | 8/10 | 5/10 | 1/10 | 0/10 | 9/10 | 8/10 | 9/10 | 9/10 | 9/10 | 7/10 | 9/10 |
+| 90–99 | Superellipses | 9/10 | 9/10 | 9/10 | 10/10 | 5/10 | 10/10 | 10/10 | 9/10 | 10/10 | 9/10 | 10/10 | 10/10 |
+| **Total** | **All families** | **21/100** | **36/100** | **28/100** | **24/100** | **14/100** | **42/100** | **39/100** | **46/100** | **43/100** | **41/100** | **39/100** | **50/100** |
 
 ### EXP-001 — Flow matching baseline
 
@@ -222,6 +223,22 @@ Train on `x_t = (1 − t)x_0 + tx_1`, where `x_0 ~ N(0, I)` and `x_1` is a targe
 
 [Target vs. generated](experiments/011-mixture-mlp/comparison.png) · [Per-class results](experiments/011-mixture-mlp/quality.csv) · [Exact configuration](experiments/011-mixture-mlp/config.json) · [Metrics](experiments/011-mixture-mlp/metrics.json) · [Acceptance thresholds](experiments/011-mixture-mlp/quality_report.json)
 
+### EXP-012 — Correlated Gaussian basis
+
+**Question.** Can rotated local Gaussian components improve thin and curved shapes?
+
+**Method.** Extend the learned Gaussian basis with a bounded correlation per component, allowing full positive-definite 2D covariance. Use 384 components per class plus the same compact modulated MLP correction. No target geometry is used; the velocity loss and Heun sampler are unchanged. Parameter count: **304,290**.
+
+**Configuration.** Same dataset, training and evaluation settings as EXP-001: 15,000 updates, batch 2,048, AdamW, LR 0.001, 500-step warmup, cosine decay, seed 42, MPS, 100 Heun steps and 2,000 points per class. Observed duration: **5,374.4 s (89.6 min)**, including progress sampling/plots and excluding final sampling/evaluation.
+
+![EXP-012: particle trajectories](experiments/012-correlated-mixture/inference.gif)
+
+**Result.** Validation MSE fell from **1.2641 to 1.0920**. Mean SW1: **0.02782**. **50/100 classes passed**.
+
+**Finding.** New best: 50/100 passed, up from 46/100 in EXP-008 and 39/100 in EXP-011. Mean SW1 also improves to 0.02782. Several remaining spiral, star and wave classes narrowly fail precision, motivating a density-consistent velocity model. This is a single-seed result; family counts are reported only in the table above.
+
+[Target vs. generated](experiments/012-correlated-mixture/comparison.png) · [Per-class results](experiments/012-correlated-mixture/quality.csv) · [Exact configuration](experiments/012-correlated-mixture/config.json) · [Metrics](experiments/012-correlated-mixture/metrics.json) · [Acceptance thresholds](experiments/012-correlated-mixture/quality_report.json)
+
 ## Evaluation protocol
 
 Each class must pass **all four checks**: sliced Wasserstein-1 (global distribution), nearest-distance precision (proximity to target support), coverage (missing regions), and multiscale grid JS divergence (local density). Thresholds are calibrated against independent target samples: at most 1,000 points per class, five calibration draws, distance tolerance ×1.5, and probability slack 0.05. These are heuristic acceptance checks, not proof of distributional equivalence.
@@ -316,4 +333,4 @@ To add a model, implement `__init__(ModelConfig)` and `forward(points[B,2], time
 
 ## Add an experiment
 
-Append one table row and one short entry: **question → method/change → configuration → results → inference GIF → finding**. Save selected artifacts in `experiments/012-<name>/` with the exact config and evaluation report. Retain failures and keep acceptance thresholds unchanged across comparisons.
+Append one table row and one short entry: **question → method/change → configuration → results → inference GIF → finding**. Save selected artifacts in `experiments/013-<name>/` with the exact config and evaluation report. Retain failures and keep acceptance thresholds unchanged across comparisons.

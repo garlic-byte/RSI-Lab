@@ -1,0 +1,11 @@
+{
+  "source": "outputs/iter012_correlated_mixture",
+  "directory": "012-correlated-mixture",
+  "title": "Correlated Gaussian basis",
+  "label": "Correlated basis",
+  "short": "Full-covariance Gaussian basis + MLP",
+  "question": "Can rotated local Gaussian components improve thin and curved shapes?",
+  "method": "Extend the learned Gaussian basis with a bounded correlation per component, allowing full positive-definite 2D covariance. Use 384 components per class plus the same compact modulated MLP correction. No target geometry is used; the velocity loss and Heun sampler are unchanged.",
+  "parameters": 304290,
+  "finding": "New best: 50/100 passed, up from 46/100 in EXP-008 and 39/100 in EXP-011. Mean SW1 also improves to 0.02782. Several remaining spiral, star and wave classes narrowly fail precision, motivating a density-consistent velocity model."
+}

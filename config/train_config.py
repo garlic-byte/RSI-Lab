@@ -43,7 +43,7 @@ class ModelConfig:
             raise ValueError("unet_channels must be positive")
         if self.model_type in ("global_mlp", "class_conditioned_mlp", "modulated_global_mlp", "adaptive_fourier_mlp", "mixture_mlp", "correlated_mixture_mlp") and min(self.global_mlp_dim, self.global_mlp_bottleneck) <= 0:
             raise ValueError("global_mlp_dim and global_mlp_bottleneck must be positive")
-        if self.model_type in ("mixture_mlp", "correlated_mixture_mlp") and self.mixture_components <= 0:
+        if self.model_type in ("mixture_mlp", "correlated_mixture_mlp", "gaussian_mixture") and self.mixture_components <= 0:
             raise ValueError("mixture_components must be positive")
 
 
