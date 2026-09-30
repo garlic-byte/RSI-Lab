@@ -1,0 +1,11 @@
+{
+  "source": "outputs/iter013_gaussian_mixture",
+  "directory": "013-gaussian-mixture",
+  "title": "Density-consistent Gaussian mixture",
+  "label": "Pure mixture",
+  "short": "Full-covariance Gaussian mixture",
+  "question": "Does removing the unconstrained MLP correction improve precision?",
+  "method": "Remove the MLP correction and allocate the entire budget to 512 learned full-covariance Gaussian components per class. Use the same velocity MSE and 100-step Heun integration, without direct mixture sampling.",
+  "parameters": 307200,
+  "finding": "Only 5/100 passed; removing the MLP correction severely regresses combined acceptance despite mean SW1 of 0.02950. Reject this candidate and retain the 50/100 hybrid from EXP-012."
+}

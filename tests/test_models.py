@@ -12,6 +12,17 @@ from train.sampling import generate_points
 
 
 class ModelRegistryTest(unittest.TestCase):
+    def test_oriented_covariance_matches_rotation(self):
+        model = build_model(ModelConfig(model_type="oriented_mixture_mlp", mixture_components=8))
+        labels = torch.tensor([0, 12])
+        angles = model.component_angles[labels]
+        rotation = torch.stack((angles.cos(), -angles.sin(), angles.sin(), angles.cos()), -1).reshape(2, 8, 2, 2)
+        eigenvalues = torch.diag_embed((2 * model.component_log_scales[labels]).exp())
+        expected = rotation @ eigenvalues @ rotation.transpose(-1, -2)
+        diagonal, cross = model.target_covariance(labels)
+        torch.testing.assert_close(diagonal, expected.diagonal(dim1=-2, dim2=-1))
+        torch.testing.assert_close(cross, expected[..., 0, 1])
+
     def test_correlated_basis_matches_matrix_gaussian_reference(self):
         config = ModelConfig(model_type="correlated_mixture_mlp", hidden_dim=32, num_layers=2,
                              global_mlp_dim=16, global_mlp_bottleneck=8, mixture_components=4)

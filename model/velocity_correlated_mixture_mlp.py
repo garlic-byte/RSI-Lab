@@ -19,12 +19,17 @@ class VelocityCorrelatedMixtureMLP(VelocityMixtureMLP):
         super().__init__(config)
         self.component_correlations = nn.Parameter(torch.zeros(config.num_classes, config.mixture_components))
 
-    def mixture_velocity(self, points: torch.Tensor, time: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
-        """Return posterior-averaged velocity using explicit 2x2 covariance solves."""
-        means = self.component_means[labels]
+    def target_covariance(self, labels: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        """Return diagonal and off-diagonal entries of each endpoint covariance."""
         scales = self.component_log_scales[labels].clamp(-5, 1).exp()
         target_variance = scales.square()
         covariance = 0.99 * self.component_correlations[labels].tanh() * scales.prod(-1)
+        return target_variance, covariance
+
+    def mixture_velocity(self, points: torch.Tensor, time: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
+        """Return posterior-averaged velocity using explicit 2x2 covariance solves."""
+        means = self.component_means[labels]
+        target_variance, covariance = self.target_covariance(labels)
         t = time[:, None, :]
         variance = (1 - t).square() + t.square() * target_variance
         cross = t.squeeze(-1).square() * covariance
