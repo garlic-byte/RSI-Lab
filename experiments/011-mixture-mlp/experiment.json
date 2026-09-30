@@ -1,0 +1,11 @@
+{
+  "source": "outputs/iter011_mixture_mlp",
+  "directory": "011-mixture-mlp",
+  "title": "Learned Gaussian basis with MLP correction",
+  "label": "Gaussian basis",
+  "short": "Gaussian basis + modulated MLP",
+  "question": "Can a learned local density basis improve detailed shape fitting?",
+  "method": "Learn 400 diagonal Gaussian components per class and their analytic Gaussian-source interpolation velocity. Add a compact modulated Global MLP correction weighted by t(1-t). All classes start from the same generic grid; centers, scales and logits learn through the unchanged velocity MSE. Sampling still integrates the velocity with Heun.",
+  "parameters": 273890,
+  "finding": "39/100 passed versus the best 46/100 in EXP-008, despite the lowest mean SW1 so far (0.02794). Some checkerboard and rose classes now pass, but spiral and wave performance regresses. Local density modeling is promising but does not yet improve overall acceptance."
+}

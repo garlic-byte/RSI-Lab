@@ -13,6 +13,7 @@ from model.velocity_class_conditioned_mlp import VelocityClassConditionedMLP
 from model.velocity_modulated_global_mlp import VelocityModulatedGlobalMLP
 from model.velocity_adaptive_fourier_mlp import VelocityAdaptiveFourierMLP
 from model.velocity_mixture_mlp import VelocityMixtureMLP
+from model.velocity_correlated_mixture_mlp import VelocityCorrelatedMixtureMLP
 
 
 MODEL_REGISTRY: dict[str, type[nn.Module]] = {
@@ -26,6 +27,7 @@ MODEL_REGISTRY: dict[str, type[nn.Module]] = {
     "modulated_global_mlp": VelocityModulatedGlobalMLP,
     "adaptive_fourier_mlp": VelocityAdaptiveFourierMLP,
     "mixture_mlp": VelocityMixtureMLP,
+    "correlated_mixture_mlp": VelocityCorrelatedMixtureMLP,
 }
 
 

@@ -12,6 +12,31 @@ from train.sampling import generate_points
 
 
 class ModelRegistryTest(unittest.TestCase):
+    def test_correlated_basis_matches_matrix_gaussian_reference(self):
+        config = ModelConfig(model_type="correlated_mixture_mlp", hidden_dim=32, num_layers=2,
+                             global_mlp_dim=16, global_mlp_bottleneck=8, mixture_components=4)
+        model = build_model(config).double()
+        with torch.no_grad():
+            model.component_correlations.uniform_(-2, 2)
+            model.component_log_scales.uniform_(-3, 0)
+            model.component_logits.normal_()
+        x, t, labels = torch.randn(8, 2, dtype=torch.float64), torch.linspace(0, 1, 8, dtype=torch.float64)[:, None], torch.arange(8)
+        means = model.component_means[labels]
+        scales = model.component_log_scales[labels].exp()
+        sigma = torch.diag_embed(scales.square())
+        cross = 0.99 * model.component_correlations[labels].tanh() * scales.prod(-1)
+        sigma[..., 0, 1] = cross
+        sigma[..., 1, 0] = cross
+        tau = t[:, None, :, None]
+        identity = torch.eye(2, dtype=torch.float64)
+        variance = (1 - tau).square() * identity + tau.square() * sigma
+        distribution = torch.distributions.MultivariateNormal(t[:, None, :] * means, covariance_matrix=variance)
+        responsibilities = (distribution.log_prob(x[:, None, :]) + model.component_logits[labels].log_softmax(-1)).softmax(-1)
+        solved = torch.linalg.solve(variance, (x[:, None, :] - t[:, None, :] * means)[..., None])
+        conditional = means + ((tau * sigma - (1 - tau) * identity) @ solved).squeeze(-1)
+        expected = (responsibilities[..., None] * conditional).sum(1)
+        torch.testing.assert_close(model.mixture_velocity(x, t, labels), expected)
+
     def test_gaussian_basis_matches_known_velocity_and_endpoints(self):
         config = ModelConfig(model_type="mixture_mlp", hidden_dim=32, num_layers=2,
                              global_mlp_dim=16, global_mlp_bottleneck=8, mixture_components=4)
