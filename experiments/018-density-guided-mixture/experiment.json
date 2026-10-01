@@ -1,0 +1,11 @@
+{
+  "source": "outputs/iter018_density_guided_mixture",
+  "directory": "018-density-guided-mixture",
+  "title": "Density and entropy guidance",
+  "label": "Density guidance",
+  "short": "Velocity moments + density and entropy",
+  "question": "Can density magnitude and component overlap resolve the remaining failures?",
+  "method": "Extend EXP-017 with the model mixture log density (asinh transformed) and normalized responsibility entropy. A zero-initialized 2-to-32 projection injects them into the position token, adding 64 parameters while preserving the initial function and RNG stream. All features are computed from the learned model at the current point, without extra supervision.",
+  "parameters": 304514,
+  "finding": "New best: 98/100 passed versus 93/100 in EXP-017. Mean SW1 improves to 0.02774. Only Rose 04 (33) and Lissajous 02 (61) fail precision; every grid-JS check passes. The unchanged 100/100 goal remains open."
+}
