@@ -13,6 +13,7 @@ from model.velocity_class_conditioned_mlp import VelocityClassConditionedMLP
 from model.velocity_modulated_global_mlp import VelocityModulatedGlobalMLP
 from model.velocity_adaptive_fourier_mlp import VelocityAdaptiveFourierMLP
 from model.velocity_mixture_mlp import VelocityMixtureMLP
+from model.velocity_density_guided_mixture_mlp import VelocityDensityGuidedMixtureMLP
 from model.velocity_dispersion_guided_mixture_mlp import VelocityDispersionGuidedMixtureMLP
 from model.velocity_block_guided_mixture_mlp import VelocityBlockGuidedMixtureMLP
 from model.velocity_guided_mixture_mlp import VelocityGuidedMixtureMLP
@@ -32,6 +33,7 @@ MODEL_REGISTRY: dict[str, type[nn.Module]] = {
     "modulated_global_mlp": VelocityModulatedGlobalMLP,
     "adaptive_fourier_mlp": VelocityAdaptiveFourierMLP,
     "mixture_mlp": VelocityMixtureMLP,
+    "density_guided_mixture_mlp": VelocityDensityGuidedMixtureMLP,
     "dispersion_guided_mixture_mlp": VelocityDispersionGuidedMixtureMLP,
     "block_guided_mixture_mlp": VelocityBlockGuidedMixtureMLP,
     "guided_mixture_mlp": VelocityGuidedMixtureMLP,

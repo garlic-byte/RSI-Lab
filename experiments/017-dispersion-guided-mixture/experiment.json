@@ -1,0 +1,11 @@
+{
+  "source": "outputs/iter017_dispersion_guided_mixture",
+  "directory": "017-dispersion-guided-mixture",
+  "title": "Velocity dispersion guidance",
+  "label": "Dispersion guidance",
+  "short": "Mean and dispersion-guided MLP",
+  "question": "Can between-component velocity dispersion resolve remaining precision failures?",
+  "method": "Extend EXP-015 with three features describing the weighted covariance of component conditional velocity means. Project log-transformed diagonal variances and normalized cross-covariance into the position token. The zero-initialized projection adds 96 parameters and preserves the initial function and RNG stream. These features describe between-component dispersion, not total posterior uncertainty.",
+  "parameters": 304450,
+  "finding": "New best: 93/100 passed, up from 82/100 in EXP-015. Five remaining classes fail precision and two fail grid JS. Mean SW1 is 0.02795. Local second-moment guidance substantially improves acceptance under unchanged training and evaluation."
+}

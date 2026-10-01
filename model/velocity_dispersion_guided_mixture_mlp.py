@@ -25,6 +25,11 @@ class VelocityDispersionGuidedMixtureMLP(VelocityGuidedMixtureMLP):
                          labels: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute the mean and centered weighted covariance in one basis pass."""
         conditional, weights = self.component_velocity_fields(points, time, labels)
+        return self.project_velocity_moments(conditional, weights)
+
+    def project_velocity_moments(self, conditional: torch.Tensor,
+                                 weights: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        """Project the mean and between-component covariance without resampling."""
         velocity = (weights[..., None] * conditional).sum(1)
         centered = conditional - velocity[:, None, :]
         variance = (weights[..., None] * centered.square()).sum(1)

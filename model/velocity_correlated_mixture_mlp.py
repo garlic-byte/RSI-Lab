@@ -34,6 +34,12 @@ class VelocityCorrelatedMixtureMLP(VelocityMixtureMLP):
     def component_velocity_fields(self, points: torch.Tensor, time: torch.Tensor,
                                   labels: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """Return component conditional means [B,K,2] and responsibilities [B,K]."""
+        conditional, weights, _ = self.component_velocity_statistics(points, time, labels)
+        return conditional, weights
+
+    def component_velocity_statistics(self, points: torch.Tensor, time: torch.Tensor,
+                                      labels: torch.Tensor) -> tuple[torch.Tensor, ...]:
+        """Also expose component log densities, omitting the common log(2*pi)."""
         means = self.component_means[labels]
         target_variance, covariance = self.target_covariance(labels)
         t = time[:, None, :]
@@ -51,4 +57,4 @@ class VelocityCorrelatedMixtureMLP(VelocityMixtureMLP):
         coefficient = t * target_variance - (1 - t)
         cross_coefficient = t * covariance[..., None]
         conditional = means + coefficient * solved + cross_coefficient * solved.flip(-1)
-        return conditional, weights
+        return conditional, weights, log_density
