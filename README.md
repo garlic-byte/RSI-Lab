@@ -1,8 +1,51 @@
 # RSI Flow Lab
 
-A compact testbed for recursive self-improvement experiments using 2D flow matching, automated fit checks, and particle trajectory visualizations.
+A practical, agent-guided recursive self-improvement (RSI) workflow for model architecture research: use each experiment's measured failures to design, implement, and evaluate the next candidate.
 
-**Status:** architecture search in progress toward 60/100 passing classes, with fixed training/evaluation settings and 100-step Heun sampling. Iterations are agent-guided; no standalone recursive self-improvement training loop is implemented.
+**Result:** **21/100 → 100/100 passing classes across 19 recorded experiments.** The final model, `density_guided_mixture_mlp` with FFN width 144, has **308,674 parameters** and mean SW1 **0.02776**. All four acceptance checks pass for every class. The 100-class search is complete; scheduled iteration has stopped.
+
+## The RSI workflow
+
+**Measure → diagnose → propose → implement → train → evaluate → record → repeat.**
+
+1. **Measure a baseline.** Generate 100 noisy 2D shape distributions and train a velocity model with flow matching.
+2. **Diagnose concrete failures.** Inspect per-class precision, coverage, grid JS, and sliced Wasserstein distance. Use loss and animations as supporting evidence, rather than treating lower training loss as success.
+3. **Propose a model change.** Target the observed weakness using architectural reasoning and, where relevant, research literature. Retain the best measured candidate when a new one regresses.
+4. **Implement and verify.** Preserve the `(points, time, labels) → velocity` interface; check gradients, numerical formulas, checkpoint compatibility, and MPS execution as appropriate.
+5. **Run a fixed experiment.** Train each candidate from scratch. Check long-running jobs hourly instead of continuously polling logs.
+6. **Evaluate and preserve evidence.** Publish the configuration, metrics, per-class report, comparison image, and inference animation to GitHub after every completed round, including failures. Use that record to choose the next experiment.
+
+The recursive step is the feedback from evaluation into the next architecture and code revision. An AI coding agent performs that outer research loop; PyTorch optimizes each candidate's weights in the inner training loop. The velocity model does not rewrite itself, and this repository does not implement a standalone autonomous RSI controller or demonstrate general-purpose intelligence improvement.
+
+**Fixed contract.** Across the recorded benchmark runs: the same dataset definition, velocity-MSE objective, training settings, evaluation rules, and **100-step Heun** sampler. During the goal-driven search from EXP-009 onward, parameter count stays within **281,346 ±10%**. No target shape formulas are embedded in model initialization, and no evaluation thresholds are relaxed. Full outputs/checkpoints remain local under ignored `outputs/`; selected evidence is versioned under `experiments/`.
+
+## How the method evolved
+
+The successful direction was **better feature processing → learned local geometry → geometry-informed neural correction**. Not every step improved the result; the table below summarizes both the hypotheses and the evidence.
+
+| Experiments | Direction and rationale | Observed result / decision |
+|---|---|---|
+| **001–006: backbone search** | Start with MLP; test Transformer, CNN, residual MLP, and feature-sequence U-Net. Build Global MLP with dense global mixing, normalization, residuals, and channel gates to test strong feature interaction without QKV. | MLP **21**, Transformer **36**, CNN **28**, residual MLP **24**, U-Net **14**, Global MLP **42**. The combined Global MLP design is effective; attention is not required for this pass count. |
+| **007–008: conditioning** | Let class/time information control feature scales and shifts inside blocks. Removing the class token might lose useful interactions, so restore all three tokens while adding separate modulation paths. | Separate class conditioning: **39**. Three-token time/class modulation: **46**. Keep the latter. |
+| **009–010: spatial frequencies** | Add more fixed Fourier frequencies, then learn class-specific directions/frequencies, to represent finer spatial variation. | **43** and **41**. Richer global frequency features do not solve the remaining local fitting failures. |
+| **011–012: local Gaussian geometry** | Combine learned Gaussian-basis velocity with an MLP correction. Extend axis-aligned components to full covariance so local ellipses can align with slanted curves. | Diagonal hybrid **39**; correlated hybrid **50**. Local geometry is promising even though the first version regresses in total passes. |
+| **013–014: correction and parameterization** | Test whether a pure Gaussian field is sufficient. Then return to the hybrid and learn ellipse angle and principal widths directly, with an anisotropic initialization. | Pure mixture **5**; principal-axis hybrid **61**. Keep the neural correction and the improved geometric parameterization. |
+| **015–016: velocity guidance** | Feed the Gaussian branch's predicted velocity into the correction MLP, so it can use the prediction it is refining. Also test injecting that velocity into every block's modulation. | Input guidance **82**, block guidance **81**. Retain input guidance; more injection sites do not help this run. |
+| **017: dispersion guidance** | Equal mean velocities can hide very different component predictions. Expose their weighted covariance so the MLP can distinguish agreement from opposing directions. | **93**. Between-component velocity dispersion adds useful information beyond the mean. |
+| **018: density and entropy** | Add the model's local log density and responsibility entropy to describe probability concentration and component overlap. These are internally computed features, not extra supervision. | **98**. All grid-JS checks pass; only two precision failures remain. |
+| **019: correction capacity** | Keep the effective geometry features and increase FFN width from 128 to 144, testing whether a little more correction capacity resolves the final failures. | **100**. The final candidate satisfies the fixed acceptance criteria within the parameter budget. |
+
+## What the experiments taught us
+
+- **Useful intermediate information mattered more than parameter growth in the largest later gains.** EXP-015, EXP-017, and EXP-018 add only 64, 96, and 64 parameters respectively. Their MLP receives progressively richer summaries of a learned local geometric model.
+- **Geometry and neural correction work together.** The final architecture combines an analytic Gaussian-mixture velocity with a learned correction: `v = v_gaussian + t(1-t) * correction`. The correction uses position, time, class, mean velocity, between-component dispersion, density, and entropy. It still learns through the original velocity MSE and generates points through Heun integration.
+- **Failures shaped the route.** Residuals alone were insufficient; extra Fourier frequencies did not help; the pure Gaussian model regressed sharply; block-level guidance did not beat input guidance. All remain in the experiment record.
+- **Passing classes and average error are different objectives.** Many later failures were small precision shortfalls. Better local corrections can move classes across the fixed acceptance thresholds without proportionally improving mean SW1 or validation loss.
+- **Mechanisms remain hypotheses, not isolated causal proofs.** These are single-seed experiments; some rounds change several architectural details. Changing width can also change initialization RNG consumption and subsequent training draws. Final sampling is independently re-seeded, but multi-seed and controlled ablations are needed to establish robustness. **100/100 means passing this finite-sample evaluation, not exact distribution equivalence.**
+
+![Final model: particles moving from Gaussian noise to learned shapes](experiments/019-density-wide144/inference.gif)
+
+[Final configuration](experiments/019-density-wide144/config.json) · [All 100 class results](experiments/019-density-wide144/quality.csv) · [Acceptance report](experiments/019-density-wide144/quality_report.json) · [Target vs. generated](experiments/019-density-wide144/comparison.png)
 
 ## Experiments
 
