@@ -26,24 +26,25 @@ A compact testbed for recursive self-improvement experiments using 2D flow match
 | [016](#exp-016--block-level-velocity-guidance) | Velocity guidance in every block | `checkerboard_v2`, 100 classes | 1.0911 | 0.0280 | 81/100 | 81/100 passed versus 82/100 in EXP-015. Mean SW1 is nearly unchanged (0.02803). Block-level velocity conditioning does not improve this single-seed result; retain EXP-015 as the best model. |
 | [017](#exp-017--velocity-dispersion-guidance) | Mean and dispersion-guided MLP | `checkerboard_v2`, 100 classes | 1.0898 | 0.0279 | 93/100 | New best: 93/100 passed, up from 82/100 in EXP-015. Five remaining classes fail precision and two fail grid JS. Mean SW1 is 0.02795. Local second-moment guidance substantially improves acceptance under unchanged training and evaluation. |
 | [018](#exp-018--density-and-entropy-guidance) | Velocity moments + density and entropy | `checkerboard_v2`, 100 classes | 1.0894 | 0.0277 | 98/100 | New best: 98/100 passed versus 93/100 in EXP-017. Mean SW1 improves to 0.02774. Only Rose 04 (33) and Lissajous 02 (61) fail precision; every grid-JS check passes. The unchanged 100/100 goal remains open. |
+| [019](#exp-019--wider-density-guided-hybrid) | Density-guided hybrid, FFN 144 | `checkerboard_v2`, 100 classes | 1.0761 | 0.0278 | 100/100 | 100/100 goal reached: every class passes all four unchanged checks. Mean SW1 is 0.02776 (slightly above EXP-018). Parameter count is 9.7% above the 281346 reference, within budget. This is a single-seed, finite-sample acceptance result, not proof of exact distribution equivalence. |
 
 ### Fit-check pass rate by shape family
 
 Each cell shows **passing classes / 10 variants**. A class passes only when all four fit checks pass; these are class-level acceptance rates, not per-point accuracy.
 
-| Class IDs | Shape family | MLP (001) | Transformer (002) | CNN (003) | Residual MLP (004) | U-Net (005) | Global MLP (006) | Class cond. (007) | Modulated (008) | Fourier16 (009) | Adaptive Fourier (010) | Gaussian basis (011) | Correlated basis (012) | Pure mixture (013) | Oriented basis (014) | Guided basis (015) | Block guidance (016) | Dispersion guidance (017) | Density guidance (018) |
-|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 00–09 | Checkerboards | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 4/10 | 7/10 | 3/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 |
-| 10–19 | Ellipses | 9/10 | 10/10 | 10/10 | 10/10 | 8/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | 9/10 | 10/10 | 0/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 |
-| 20–29 | Spirals | 0/10 | 2/10 | 0/10 | 0/10 | 0/10 | 2/10 | 2/10 | 3/10 | 3/10 | 3/10 | 0/10 | 0/10 | 0/10 | 1/10 | 6/10 | 6/10 | 10/10 | 10/10 |
-| 30–39 | Roses | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 2/10 | 4/10 | 2/10 | 6/10 | 7/10 | 7/10 | 9/10 | 9/10 |
-| 40–49 | Polygons | 1/10 | 6/10 | 3/10 | 3/10 | 1/10 | 8/10 | 5/10 | 10/10 | 6/10 | 7/10 | 7/10 | 10/10 | 0/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 |
-| 50–59 | Stars | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 1/10 | 1/10 | 2/10 | 0/10 | 0/10 | 0/10 | 0/10 | 2/10 | 7/10 | 6/10 | 8/10 | 10/10 |
-| 60–69 | Lissajous curves | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 3/10 | 8/10 | 8/10 | 9/10 | 9/10 |
-| 70–79 | Waves | 0/10 | 1/10 | 1/10 | 0/10 | 0/10 | 3/10 | 3/10 | 4/10 | 3/10 | 3/10 | 0/10 | 0/10 | 0/10 | 0/10 | 8/10 | 8/10 | 9/10 | 10/10 |
-| 80–89 | Gaussian rings | 2/10 | 8/10 | 5/10 | 1/10 | 0/10 | 9/10 | 8/10 | 9/10 | 9/10 | 9/10 | 7/10 | 9/10 | 0/10 | 9/10 | 7/10 | 7/10 | 8/10 | 10/10 |
-| 90–99 | Superellipses | 9/10 | 9/10 | 9/10 | 10/10 | 5/10 | 10/10 | 10/10 | 9/10 | 10/10 | 9/10 | 10/10 | 10/10 | 0/10 | 10/10 | 9/10 | 9/10 | 10/10 | 10/10 |
-| **Total** | **All families** | **21/100** | **36/100** | **28/100** | **24/100** | **14/100** | **42/100** | **39/100** | **46/100** | **43/100** | **41/100** | **39/100** | **50/100** | **5/100** | **61/100** | **82/100** | **81/100** | **93/100** | **98/100** |
+| Class IDs | Shape family | MLP (001) | Transformer (002) | CNN (003) | Residual MLP (004) | U-Net (005) | Global MLP (006) | Class cond. (007) | Modulated (008) | Fourier16 (009) | Adaptive Fourier (010) | Gaussian basis (011) | Correlated basis (012) | Pure mixture (013) | Oriented basis (014) | Guided basis (015) | Block guidance (016) | Dispersion guidance (017) | Density guidance (018) | Density wide144 (019) |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 00–09 | Checkerboards | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 4/10 | 7/10 | 3/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 |
+| 10–19 | Ellipses | 9/10 | 10/10 | 10/10 | 10/10 | 8/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | 9/10 | 10/10 | 0/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 |
+| 20–29 | Spirals | 0/10 | 2/10 | 0/10 | 0/10 | 0/10 | 2/10 | 2/10 | 3/10 | 3/10 | 3/10 | 0/10 | 0/10 | 0/10 | 1/10 | 6/10 | 6/10 | 10/10 | 10/10 | 10/10 |
+| 30–39 | Roses | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 2/10 | 4/10 | 2/10 | 6/10 | 7/10 | 7/10 | 9/10 | 9/10 | 10/10 |
+| 40–49 | Polygons | 1/10 | 6/10 | 3/10 | 3/10 | 1/10 | 8/10 | 5/10 | 10/10 | 6/10 | 7/10 | 7/10 | 10/10 | 0/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 |
+| 50–59 | Stars | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 1/10 | 1/10 | 2/10 | 0/10 | 0/10 | 0/10 | 0/10 | 2/10 | 7/10 | 6/10 | 8/10 | 10/10 | 10/10 |
+| 60–69 | Lissajous curves | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 0/10 | 3/10 | 8/10 | 8/10 | 9/10 | 9/10 | 10/10 |
+| 70–79 | Waves | 0/10 | 1/10 | 1/10 | 0/10 | 0/10 | 3/10 | 3/10 | 4/10 | 3/10 | 3/10 | 0/10 | 0/10 | 0/10 | 0/10 | 8/10 | 8/10 | 9/10 | 10/10 | 10/10 |
+| 80–89 | Gaussian rings | 2/10 | 8/10 | 5/10 | 1/10 | 0/10 | 9/10 | 8/10 | 9/10 | 9/10 | 9/10 | 7/10 | 9/10 | 0/10 | 9/10 | 7/10 | 7/10 | 8/10 | 10/10 | 10/10 |
+| 90–99 | Superellipses | 9/10 | 9/10 | 9/10 | 10/10 | 5/10 | 10/10 | 10/10 | 9/10 | 10/10 | 9/10 | 10/10 | 10/10 | 0/10 | 10/10 | 9/10 | 9/10 | 10/10 | 10/10 | 10/10 |
+| **Total** | **All families** | **21/100** | **36/100** | **28/100** | **24/100** | **14/100** | **42/100** | **39/100** | **46/100** | **43/100** | **41/100** | **39/100** | **50/100** | **5/100** | **61/100** | **82/100** | **81/100** | **93/100** | **98/100** | **100/100** |
 
 ### EXP-001 — Flow matching baseline
 
@@ -341,6 +342,22 @@ Train on `x_t = (1 − t)x_0 + tx_1`, where `x_0 ~ N(0, I)` and `x_1` is a targe
 
 [Target vs. generated](experiments/018-density-guided-mixture/comparison.png) · [Per-class results](experiments/018-density-guided-mixture/quality.csv) · [Exact configuration](experiments/018-density-guided-mixture/config.json) · [Metrics](experiments/018-density-guided-mixture/metrics.json) · [Acceptance thresholds](experiments/018-density-guided-mixture/quality_report.json)
 
+### EXP-019 — Wider density-guided hybrid
+
+**Question.** Can a modestly wider correction MLP resolve the final two precision failures?
+
+**Method.** Keep EXP-018 Gaussian geometry, mean/dispersion/density/entropy guidance and four-block structure. Increase only the MLP feed-forward hidden width from 128 to 144. All training, data, external input/output and evaluation settings remain fixed. Changing width changes initialization RNG consumption, so validation draws are not paired with EXP-018; final evaluation sampling uses the same reset seed. Parameter count: **308,674**.
+
+**Configuration.** Same dataset, training and evaluation settings as EXP-001: 15,000 updates, batch 2,048, AdamW, LR 0.001, 500-step warmup, cosine decay, seed 42, MPS, 100 Heun steps and 2,000 points per class. Observed duration: **4,627.7 s (77.1 min)**, including progress sampling/plots and excluding final sampling/evaluation.
+
+![EXP-019: particle trajectories](experiments/019-density-wide144/inference.gif)
+
+**Result.** Validation MSE fell from **1.2511 to 1.0761**. Mean SW1: **0.02776**. **100/100 classes passed**.
+
+**Finding.** 100/100 goal reached: every class passes all four unchanged checks. Mean SW1 is 0.02776 (slightly above EXP-018). Parameter count is 9.7% above the 281346 reference, within budget. This is a single-seed, finite-sample acceptance result, not proof of exact distribution equivalence. This is a single-seed result; family counts are reported only in the table above.
+
+[Target vs. generated](experiments/019-density-wide144/comparison.png) · [Per-class results](experiments/019-density-wide144/quality.csv) · [Exact configuration](experiments/019-density-wide144/config.json) · [Metrics](experiments/019-density-wide144/metrics.json) · [Acceptance thresholds](experiments/019-density-wide144/quality_report.json)
+
 ## Evaluation protocol
 
 Each class must pass **all four checks**: sliced Wasserstein-1 (global distribution), nearest-distance precision (proximity to target support), coverage (missing regions), and multiscale grid JS divergence (local density). Thresholds are calibrated against independent target samples: at most 1,000 points per class, five calibration draws, distance tolerance ×1.5, and probability slack 0.05. These are heuristic acceptance checks, not proof of distributional equivalence.
@@ -435,4 +452,4 @@ To add a model, implement `__init__(ModelConfig)` and `forward(points[B,2], time
 
 ## Add an experiment
 
-Append one table row and one short entry: **question → method/change → configuration → results → inference GIF → finding**. Save selected artifacts in `experiments/019-<name>/` with the exact config and evaluation report. Retain failures and keep acceptance thresholds unchanged across comparisons.
+Append one table row and one short entry: **question → method/change → configuration → results → inference GIF → finding**. Save selected artifacts in `experiments/020-<name>/` with the exact config and evaluation report. Retain failures and keep acceptance thresholds unchanged across comparisons.

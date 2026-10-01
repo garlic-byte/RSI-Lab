@@ -1,0 +1,11 @@
+{
+  "source": "outputs/iter019_density_wide144",
+  "directory": "019-density-wide144",
+  "title": "Wider density-guided hybrid",
+  "label": "Density wide144",
+  "short": "Density-guided hybrid, FFN 144",
+  "question": "Can a modestly wider correction MLP resolve the final two precision failures?",
+  "method": "Keep EXP-018 Gaussian geometry, mean/dispersion/density/entropy guidance and four-block structure. Increase only the MLP feed-forward hidden width from 128 to 144. All training, data, external input/output and evaluation settings remain fixed. Changing width changes initialization RNG consumption, so validation draws are not paired with EXP-018; final evaluation sampling uses the same reset seed.",
+  "parameters": 308674,
+  "finding": "100/100 goal reached: every class passes all four unchanged checks. Mean SW1 is 0.02776 (slightly above EXP-018). Parameter count is 9.7% above the 281346 reference, within budget. This is a single-seed, finite-sample acceptance result, not proof of exact distribution equivalence."
+}
