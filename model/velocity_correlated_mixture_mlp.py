@@ -28,6 +28,12 @@ class VelocityCorrelatedMixtureMLP(VelocityMixtureMLP):
 
     def mixture_velocity(self, points: torch.Tensor, time: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
         """Return posterior-averaged velocity using explicit 2x2 covariance solves."""
+        conditional, weights = self.component_velocity_fields(points, time, labels)
+        return (weights[..., None] * conditional).sum(1)
+
+    def component_velocity_fields(self, points: torch.Tensor, time: torch.Tensor,
+                                  labels: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        """Return component conditional means [B,K,2] and responsibilities [B,K]."""
         means = self.component_means[labels]
         target_variance, covariance = self.target_covariance(labels)
         t = time[:, None, :]
@@ -45,4 +51,4 @@ class VelocityCorrelatedMixtureMLP(VelocityMixtureMLP):
         coefficient = t * target_variance - (1 - t)
         cross_coefficient = t * covariance[..., None]
         conditional = means + coefficient * solved + cross_coefficient * solved.flip(-1)
-        return (weights[..., None] * conditional).sum(1)
+        return conditional, weights

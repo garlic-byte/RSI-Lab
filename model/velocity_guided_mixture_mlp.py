@@ -25,13 +25,19 @@ class VelocityGuidedMixtureMLP(VelocityOrientedMixtureMLP):
         """Keep the baseline time/class condition; variants may add geometry."""
         return condition
 
+    def compute_guidance(self, points: torch.Tensor, time: torch.Tensor,
+                         labels: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        """Return the base velocity and projected local geometry features."""
+        velocity = self.mixture_velocity(points, time, labels)
+        return velocity, self.velocity_projection(velocity)
+
     def forward(self, points: torch.Tensor, time: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
         """Return velocity with a geometry-conditioned residual correction."""
-        basis_velocity = self.mixture_velocity(points, time, labels)
+        basis_velocity, guidance = self.compute_guidance(points, time, labels)
         spatial_phase = (points[:, :, None] * self.spatial_frequencies).flatten(1)
         time_phase = time * self.frequencies
         position = self.position_projection(torch.cat((points, spatial_phase.sin(), spatial_phase.cos()), -1))
-        position = position + self.velocity_projection(basis_velocity)
+        position = position + guidance
         time_features = self.time_projection(torch.cat((time, time_phase.sin(), time_phase.cos()), -1))
         class_features = self.class_projection(self.class_embedding(labels))
         features = torch.stack((position, time_features, class_features), dim=1) + self.token_types

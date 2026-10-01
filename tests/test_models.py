@@ -12,6 +12,21 @@ from train.sampling import generate_points
 
 
 class ModelRegistryTest(unittest.TestCase):
+    def test_dispersion_guidance_initial_equivalence_and_gradient(self):
+        config = ModelConfig(model_type="guided_mixture_mlp", hidden_dim=32, num_layers=2,
+                             global_mlp_dim=16, global_mlp_bottleneck=8, mixture_components=8)
+        torch.manual_seed(42)
+        baseline = build_model(config)
+        state = torch.get_rng_state()
+        config.model_type = "dispersion_guided_mixture_mlp"
+        torch.manual_seed(42)
+        candidate = build_model(config)
+        self.assertTrue(torch.equal(state, torch.get_rng_state()))
+        x, t, labels = torch.randn(8, 2), torch.rand(8, 1), torch.arange(8)
+        torch.testing.assert_close(candidate(x, t, labels), baseline(x, t, labels), rtol=0, atol=0)
+        candidate(x, t, labels).square().mean().backward()
+        self.assertGreater(candidate.dispersion_projection.weight.grad.abs().sum().item(), 0)
+
     def test_block_guidance_preserves_initial_function_and_learns(self):
         config = ModelConfig(model_type="guided_mixture_mlp", hidden_dim=32, num_layers=2,
                              global_mlp_dim=16, global_mlp_bottleneck=8, mixture_components=8)

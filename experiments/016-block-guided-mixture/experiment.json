@@ -1,0 +1,11 @@
+{
+  "source": "outputs/iter016_block_guided_mixture",
+  "directory": "016-block-guided-mixture",
+  "title": "Block-level velocity guidance",
+  "label": "Block guidance",
+  "short": "Velocity guidance in every block",
+  "question": "Does injecting Gaussian velocity into residual-block modulation improve the input-guided model?",
+  "method": "Extend EXP-015 with a zero-initialized 2-to-32 projection of the Gaussian velocity into the shared time/class modulation condition. It adds 64 parameters while preserving the initial function and RNG stream.",
+  "parameters": 304418,
+  "finding": "81/100 passed versus 82/100 in EXP-015. Mean SW1 is nearly unchanged (0.02803). Block-level velocity conditioning does not improve this single-seed result; retain EXP-015 as the best model."
+}
